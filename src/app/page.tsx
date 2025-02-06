@@ -23,7 +23,14 @@ export default function Home() {
     prompt: string,
     image_path: string
   }>>([]);
-  const [activeTab, setActiveTab] = useState<'generate' | 'submissions'>('generate');
+  const [activeTab, setActiveTab] = useState<'generate' | 'submissions' | 'reviews'>('generate');
+  const [promptReviews, setPromptReviews] = useState<Array<{
+    user_name: string,
+    prompt: string,
+    score: number,
+    review: string,
+    suggestions: string[]
+  }>>([]);
 
   // Function to check user's attempts for today
   const checkUserAttempts = async (name: string) => {
@@ -82,6 +89,21 @@ export default function Home() {
     setError("");
 
     try {
+      // Get prompt review first
+      const reviewResponse = await fetch("/api/review-prompt", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt, userName }),
+      });
+
+      if (!reviewResponse.ok) {
+        throw new Error("Failed to review prompt");
+      }
+
+      const review = await reviewResponse.json();
+      
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: {
@@ -150,6 +172,7 @@ export default function Home() {
         // Update user history after successful submission
         await checkUserAttempts(userName);
         await fetchAllSubmissions();
+        await fetchPromptReviews();
         setTriesLeft((prev) => prev - 1);
       } catch (uploadErr) {
         console.error('Upload process error:', uploadErr);
@@ -184,9 +207,27 @@ export default function Home() {
     }
   };
 
+  // Add this function to fetch reviews
+  const fetchPromptReviews = async () => {
+    const { data, error } = await supabase
+      .from('prompt_reviews')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching reviews:', error);
+      return;
+    }
+
+    if (data) {
+      setPromptReviews(data);
+    }
+  };
+
   // Call fetchAllSubmissions when component mounts and after new submissions
   useEffect(() => {
     fetchAllSubmissions();
+    fetchPromptReviews();
   }, []);
 
   // Add new function to handle clearing
@@ -245,6 +286,16 @@ export default function Home() {
           }`}
         >
           Submissions
+        </button>
+        <button
+          onClick={() => setActiveTab('reviews')}
+          className={`px-4 py-2 font-medium rounded-t-lg ${
+            activeTab === 'reviews'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          }`}
+        >
+          Prompt Reviews
         </button>
       </div>
 
@@ -341,7 +392,7 @@ export default function Home() {
               </div>
             )}
           </>
-        ) : (
+        ) : activeTab === 'submissions' ? (
           /* All Submissions Section */
           <div className="space-y-8">
             {allSubmissions.length > 0 ? (
@@ -381,6 +432,39 @@ export default function Home() {
             ) : (
               <div className="text-center text-gray-600 dark:text-gray-400">
                 No submissions yet today
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Reviews Section */
+          <div className="space-y-8">
+            {promptReviews.length > 0 ? (
+              promptReviews.map((review, index) => (
+                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-xl font-semibold">{review.user_name}&apos;s Prompt</h3>
+                    <span className="text-2xl font-bold text-blue-600">{review.score}/100</span>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">"{review.prompt}"</p>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold mb-2">Review</h4>
+                      <p className="text-gray-600 dark:text-gray-400">{review.review}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-2">Suggestions</h4>
+                      <ul className="list-disc list-inside text-gray-600 dark:text-gray-400">
+                        {review.suggestions.map((suggestion, i) => (
+                          <li key={i}>{suggestion}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-600 dark:text-gray-400">
+                No prompt reviews yet
               </div>
             )}
           </div>
