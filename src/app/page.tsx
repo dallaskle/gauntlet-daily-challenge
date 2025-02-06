@@ -11,12 +11,23 @@ export default function Home() {
   const [triesLeft, setTriesLeft] = useState(3);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [userHistory, setUserHistory] = useState<Array<{image_url: string, prompt: string}>>([]);
-  const [allSubmissions, setAllSubmissions] = useState<Array<{user_name: string, image_url: string, prompt: string}>>([]);
+  const [userHistory, setUserHistory] = useState<Array<{
+    image_url: string, 
+    prompt: string,
+    user_name: string,
+    image_path: string
+  }>>([]);
+  const [allSubmissions, setAllSubmissions] = useState<Array<{
+    user_name: string,
+    image_url: string,
+    prompt: string,
+    image_path: string
+  }>>([]);
   const [activeTab, setActiveTab] = useState<'generate' | 'submissions'>('generate');
 
   // Function to check user's attempts for today
   const checkUserAttempts = async (name: string) => {
+    console.log('Checking user attempts for:', name);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
@@ -24,7 +35,9 @@ export default function Home() {
       .from('generated_images')
       .select('*')
       .eq('user_name', name)
-      .gte('created_at', today.toISOString());
+      .gte('created_at', today.toISOString())
+      .order('created_at', { ascending: false });
+    console.log(`Data for ${name}:`, data);
 
     if (fetchError) {
       console.error('Error fetching user history:', fetchError);
@@ -34,15 +47,19 @@ export default function Home() {
     if (data) {
       setUserHistory(data);
       setTriesLeft(3 - data.length);
+    } else {
+      setUserHistory([]);
+      setTriesLeft(3);
     }
   };
 
   // Handle name input
   const handleNameInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUserHistory([]);
     const name = e.target.value;
     setUserName(name);
     if (name.trim()) {
-      await checkUserAttempts(name);
+      checkUserAttempts(name);
     } else {
       setUserHistory([]);
       setTriesLeft(3);
@@ -130,7 +147,8 @@ export default function Home() {
           throw new Error(`Failed to save to database: ${dbError.message}`);
         }
 
-        // Fetch all submissions after successful submission
+        // Update user history after successful submission
+        await checkUserAttempts(userName);
         await fetchAllSubmissions();
         setTriesLeft((prev) => prev - 1);
       } catch (uploadErr) {
@@ -301,7 +319,7 @@ export default function Home() {
             </form>
 
             {/* History Section */}
-            {userHistory.length > 0 && (
+            {userName && userHistory.length > 0 && userHistory[0].user_name === userName && (
               <div className="mt-8">
                 <h2 className="text-2xl font-bold mb-4">Your Images Today</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -349,8 +367,8 @@ export default function Home() {
                             className="object-cover"
                           />
                         </div>
-                        {/* Only show prompt if it's the current user's submission */}
-                        {submissionUserName === userName && (
+                        {/* Only show prompt if it's the current user's submission or they've used all attempts */}
+                        {(submissionUserName === userName || userHistory.length >= 3) && (
                           <div className="p-4">
                             <p className="text-sm text-gray-600 dark:text-gray-400">{submission.prompt}</p>
                           </div>
