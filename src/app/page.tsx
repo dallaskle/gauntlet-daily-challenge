@@ -312,6 +312,16 @@ export default function Home() {
           Generate
         </button>
         <button
+          onClick={() => setActiveTab('reviews')}
+          className={`px-4 py-2 font-medium rounded-t-lg ${
+            activeTab === 'reviews'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          }`}
+        >
+          Prompt Reviews {promptReviews.length > 0 ? `(${promptReviews.length})` : ''}
+        </button>
+        <button
           onClick={() => setActiveTab('submissions')}
           className={`px-4 py-2 font-medium rounded-t-lg ${
             activeTab === 'submissions'
@@ -320,16 +330,6 @@ export default function Home() {
           }`}
         >
           Submissions
-        </button>
-        <button
-          onClick={() => setActiveTab('reviews')}
-          className={`px-4 py-2 font-medium rounded-t-lg ${
-            activeTab === 'reviews'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-          }`}
-        >
-          Prompt Reviews
         </button>
       </div>
 
@@ -426,50 +426,7 @@ export default function Home() {
               </div>
             )}
           </>
-        ) : activeTab === 'submissions' ? (
-          /* All Submissions Section */
-          <div className="space-y-8">
-            {allSubmissions.length > 0 ? (
-              Object.entries(
-                allSubmissions.reduce((acc, submission) => {
-                  if (!acc[submission.user_name]) {
-                    acc[submission.user_name] = [];
-                  }
-                  acc[submission.user_name].push(submission);
-                  return acc;
-                }, {} as Record<string, typeof allSubmissions>)
-              ).map(([submissionUserName, submissions]) => (
-                <div key={submissionUserName} className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
-                  <h3 className="text-xl font-semibold mb-4">{submissionUserName}&apos;s Submissions</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {submissions.map((submission) => (
-                      <div key={submission.image_path} className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm">
-                        <div className="aspect-square relative">
-                          <Image
-                            src={submission.image_url}
-                            alt={`${submissionUserName}&apos;s submission`}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        {/* Only show prompt if it&apos;s the current user&apos;s submission or they&apos;ve used all attempts */}
-                        {(submissionUserName === userName || userHistory.length >= 3) && (
-                          <div className="p-4">
-                            <p className="text-sm text-gray-600 dark:text-gray-400">&quot;{submission.prompt}&quot;</p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center text-gray-600 dark:text-gray-400">
-                No submissions yet today
-              </div>
-            )}
-          </div>
-        ) : (
+        ) : activeTab === 'reviews' ? (
           /* Reviews Section */
           <div className="space-y-8">
             {!userName.trim() ? (
@@ -511,6 +468,49 @@ export default function Home() {
             ) : (
               <div className="text-center text-gray-600 dark:text-gray-400">
                 You haven&apos;t submitted any prompts yet
+              </div>
+            )}
+          </div>
+        ) : (
+          /* All Submissions Section */
+          <div className="space-y-8">
+            {allSubmissions.length > 0 ? (
+              Object.entries(
+                allSubmissions.reduce((acc, submission) => {
+                  if (!acc[submission.user_name]) {
+                    acc[submission.user_name] = [];
+                  }
+                  acc[submission.user_name].push(submission);
+                  return acc;
+                }, {} as Record<string, typeof allSubmissions>)
+              ).map(([submissionUserName, submissions]) => (
+                <div key={submissionUserName} className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
+                  <h3 className="text-xl font-semibold mb-4">{submissionUserName}&apos;s Submissions</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {submissions.map((submission) => (
+                      <div key={submission.image_path} className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm">
+                        <div className="aspect-square relative">
+                          <Image
+                            src={submission.image_url}
+                            alt={`${submissionUserName}&apos;s submission`}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        {/* Only show prompt if it&apos;s the current user&apos;s submission or they&apos;ve used all attempts */}
+                        {(submissionUserName === userName || userHistory.length >= 3) && (
+                          <div className="p-4">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">&quot;{submission.prompt}&quot;</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-600 dark:text-gray-400">
+                No submissions yet today
               </div>
             )}
           </div>
