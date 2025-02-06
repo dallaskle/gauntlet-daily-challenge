@@ -95,29 +95,38 @@ export default function Home() {
     }
   }, [userName]);
 
-  // Update the debouncedFetchData to use proper dependencies
+  // Modify the useEffect to only run fetchAllSubmissions on mount
+  useEffect(() => {
+    fetchAllSubmissions();
+  }, []);
+
+  // Create a separate useEffect for prompt reviews that uses userName directly
+  useEffect(() => {
+    if (userName.trim()) {
+      fetchPromptReviews();
+    }
+  }, [userName, fetchPromptReviews]);
+
+  // Update the debouncedFetchData to only handle user attempts
   const debouncedFetchData = useCallback(
     debounce((name: string) => {
       if (name.trim()) {
-        return Promise.all([
-          checkUserAttempts(name),
-          fetchPromptReviews()
-        ]).then(() => {});
+        return checkUserAttempts(name);
       } else {
         setUserHistory([]);
         setTriesLeft(3);
-        setPromptReviews([]);
         return Promise.resolve();
       }
     }, 500),
-    [checkUserAttempts, fetchPromptReviews]
+    [checkUserAttempts]
   );
 
-  // Update handleNameInput to use the debounced function
+  // Update handleNameInput to handle reviews separately
   const handleNameInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;
     setUserName(name);
     setUserHistory([]); // Clear immediately
+    setPromptReviews([]); // Clear reviews immediately
     debouncedFetchData(name);
   };
 
@@ -256,12 +265,6 @@ export default function Home() {
       setAllSubmissions(data);
     }
   };
-
-  // Modify the useEffect to watch for userName changes
-  useEffect(() => {
-    fetchAllSubmissions();
-    fetchPromptReviews();
-  }, [userName, fetchPromptReviews]); // Add fetchPromptReviews to dependencies
 
   // Add new function to handle clearing
   const handleNewPrompt = async () => {
