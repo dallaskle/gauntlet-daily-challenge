@@ -13,6 +13,7 @@ export default function Home() {
   const [error, setError] = useState("");
   const [userHistory, setUserHistory] = useState<Array<{image_url: string, prompt: string}>>([]);
   const [allSubmissions, setAllSubmissions] = useState<Array<{user_name: string, image_url: string, prompt: string}>>([]);
+  const [activeTab, setActiveTab] = useState<'generate' | 'submissions'>('generate');
 
   // Function to check user's attempts for today
   const checkUserAttempts = async (name: string) => {
@@ -180,94 +181,119 @@ export default function Home() {
         </p>
       </header>
 
+      {/* Tab Navigation */}
+      <div className="flex space-x-2 mb-8 border-b border-gray-200 dark:border-gray-700">
+        <button
+          onClick={() => setActiveTab('generate')}
+          className={`px-4 py-2 font-medium rounded-t-lg ${
+            activeTab === 'generate'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          }`}
+        >
+          Generate
+        </button>
+        <button
+          onClick={() => setActiveTab('submissions')}
+          className={`px-4 py-2 font-medium rounded-t-lg ${
+            activeTab === 'submissions'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          }`}
+        >
+          Submissions
+        </button>
+      </div>
+
       <main className="space-y-8">
-        {/* Image Display Area */}
-        <div className="w-full aspect-square max-w-2xl mx-auto border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-          {generatedImage ? (
-            <Image
-              src={generatedImage}
-              alt="Generated image"
-              width={512}
-              height={512}
-              className="w-full h-full object-contain"
-            />
-          ) : (
-            <div className="text-gray-400 dark:text-gray-600 text-center p-4">
-              Your generated image will appear here
-            </div>
-          )}
-        </div>
-
-        {/* Input Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <input
-              type="text"
-              value={userName}
-              onChange={handleNameInput}
-              placeholder="Enter your name..."
-              className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 mb-4"
-              disabled={isLoading}
-            />
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Enter a description for the image..."
-              className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700"
-              rows={3}
-              disabled={!userName.trim() || triesLeft === 0 || isLoading}
-            />
-          </div>
-
-          <div className="flex justify-center">
-            <button
-              type="submit"
-              disabled={!prompt || !userName || triesLeft === 0 || isLoading}
-              className={`px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold
-                ${
-                  (!prompt || !userName || triesLeft === 0 || isLoading)
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-blue-700"
-                }`}
-            >
-              {isLoading ? "Generating..." : "Generate Image"}
-            </button>
-          </div>
-
-          {error && (
-            <div className="text-red-500 text-center mt-4">{error}</div>
-          )}
-        </form>
-
-        {/* History Section */}
-        {userHistory.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold mb-4">Your Images Today</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {userHistory.map((item, index) => (
-                <div key={index} className="border rounded-lg overflow-hidden">
-                  <Image
-                    src={item.image_url}
-                    alt={`Generated image ${index + 1}`}
-                    width={256}
-                    height={256}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{item.prompt}</p>
-                  </div>
+        {activeTab === 'generate' ? (
+          <>
+            {/* Image Display Area */}
+            <div className="w-full aspect-square max-w-2xl mx-auto border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+              {generatedImage ? (
+                <Image
+                  src={generatedImage}
+                  alt="Generated image"
+                  width={512}
+                  height={512}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="text-gray-400 dark:text-gray-600 text-center p-4">
+                  Your generated image will appear here
                 </div>
-              ))}
+              )}
             </div>
-          </div>
-        )}
 
-        {/* All Submissions Section */}
-        {allSubmissions.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold mb-6">Today's Submissions</h2>
-            <div className="space-y-8">
-              {Object.entries(
+            {/* Input Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={handleNameInput}
+                  placeholder="Enter your name..."
+                  className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 mb-4"
+                  disabled={isLoading}
+                />
+                <textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder="Enter a description for the image..."
+                  className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700"
+                  rows={3}
+                  disabled={!userName.trim() || triesLeft === 0 || isLoading}
+                />
+              </div>
+
+              <div className="flex justify-center">
+                <button
+                  type="submit"
+                  disabled={!prompt || !userName || triesLeft === 0 || isLoading}
+                  className={`px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold
+                    ${
+                      (!prompt || !userName || triesLeft === 0 || isLoading)
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-blue-700"
+                    }`}
+                >
+                  {isLoading ? "Generating..." : "Generate Image"}
+                </button>
+              </div>
+
+              {error && (
+                <div className="text-red-500 text-center mt-4">{error}</div>
+              )}
+            </form>
+
+            {/* History Section */}
+            {userHistory.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-2xl font-bold mb-4">Your Images Today</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {userHistory.map((item, index) => (
+                    <div key={index} className="border rounded-lg overflow-hidden">
+                      <Image
+                        src={item.image_url}
+                        alt={`Generated image ${index + 1}`}
+                        width={256}
+                        height={256}
+                        className="w-full h-48 object-cover"
+                      />
+                      <div className="p-4">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{item.prompt}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          /* All Submissions Section */
+          <div className="space-y-8">
+            {allSubmissions.length > 0 ? (
+              Object.entries(
                 allSubmissions.reduce((acc, submission) => {
                   if (!acc[submission.user_name]) {
                     acc[submission.user_name] = [];
@@ -299,8 +325,12 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
-              ))}
-            </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-600 dark:text-gray-400">
+                No submissions yet today
+              </div>
+            )}
           </div>
         )}
       </main>
