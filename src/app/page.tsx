@@ -4,14 +4,14 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { supabase } from "../utils/supabase";
 
-function debounce<T extends (...args: unknown[]) => unknown>(
+function debounce<T extends (name: string) => Promise<any>>(
   func: T,
   wait: number
-): (...args: Parameters<T>) => void {
+): (name: string) => void {
   let timeout: NodeJS.Timeout;
-  return (...args: Parameters<T>) => {
+  return (name: string) => {
     clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
+    timeout = setTimeout(() => func(name), wait);
   };
 }
 
@@ -100,14 +100,17 @@ export default function Home() {
 
   // Update the debouncedFetchData to use proper dependencies
   const debouncedFetchData = useCallback(
-    debounce(async (name: string) => {
+    debounce((name: string) => {
       if (name.trim()) {
-        await checkUserAttempts(name);
-        await fetchPromptReviews();
+        return Promise.all([
+          checkUserAttempts(name),
+          fetchPromptReviews()
+        ]);
       } else {
         setUserHistory([]);
         setTriesLeft(3);
         setPromptReviews([]);
+        return Promise.resolve();
       }
     }, 500),
     [checkUserAttempts, fetchPromptReviews]
