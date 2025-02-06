@@ -214,7 +214,7 @@ export default function Home() {
         <p className="text-gray-600 dark:text-gray-300"> Your goal is to replicate the base image as closely as possible. </p>
         <div className="w-full max-w-md mx-auto my-4 aspect-square relative">
           <Image
-            src="https://yorkqnzggaaepybsjijl.supabase.co/storage/v1/object/public/daily_challenge//1738873425124-Da.jpg"
+            src="https://yorkqnzggaaepybsjijl.supabase.co/storage/v1/object/public/daily_challenge//1738878377062-Dallas.jpg"
             alt="Base image to replicate"
             fill
             className="object-contain"
