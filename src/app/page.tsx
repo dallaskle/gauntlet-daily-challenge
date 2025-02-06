@@ -173,9 +173,14 @@ export default function Home() {
 
   return (
     <div className="min-h-screen p-8 max-w-4xl mx-auto">
-      <header className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-4">Image Generation Prompting Challenge</h1>
-        <p className="text-gray-600 dark:text-gray-300 font-bold">Thursday, February 6th 2025</p>
+        <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold mb-4">Daily Gauntlet AI Challenge</h1>
+            <p className="text-gray-600 dark:text-gray-300 font-bold">Thursday, February 6th 2025</p>
+        </div>
+        <hr className="mb-8" />
+        <header className="text-center mb-8">
+          <h1 className="text-2xl font-bold mb-4">Image Generation Prompting Challenge</h1>
+        <p className="text-gray-600 dark:text-gray-300 font-bold mb-4">In preparation for the Stable Diffusion class on Friday.</p>
         <p className="text-gray-600 dark:text-gray-300">Enter your name and a description to generate an image using Stable Diffusion. </p>
         <p className="text-gray-600 dark:text-gray-300"> Your goal to is replicate the base image as closely as possible. </p>
         <p className="text-gray-600 dark:text-gray-300">You have {triesLeft} attempts remaining today.</p>
