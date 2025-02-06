@@ -20,7 +20,6 @@ export default function Home() {
   const [prompt, setPrompt] = useState("");
   const [userName, setUserName] = useState("");
   const [generatedImage, setGeneratedImage] = useState("");
-  const [triesLeft, setTriesLeft] = useState(3);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [userHistory, setUserHistory] = useState<Array<{
@@ -59,12 +58,13 @@ export default function Home() {
 
     if (data) {
       setUserHistory(data);
-      setTriesLeft(3 - data.length);
     } else {
       setUserHistory([]);
-      setTriesLeft(3);
     }
   }, []);
+
+  // Calculate triesLeft based on userHistory
+  const triesLeft = userName.trim() ? 3 - userHistory.filter(h => h.user_name === userName).length : 3;
 
   // Move the fetchPromptReviews function definition before the debouncedFetchData
   const fetchPromptReviews = useCallback(async () => {
@@ -114,7 +114,6 @@ export default function Home() {
         return checkUserAttempts(name);
       } else {
         setUserHistory([]);
-        setTriesLeft(3);
         return Promise.resolve();
       }
     }, 500),
@@ -232,7 +231,6 @@ export default function Home() {
         await checkUserAttempts(userName);
         await fetchAllSubmissions();
         await fetchPromptReviews();
-        setTriesLeft((prev) => prev - 1);
       } catch (uploadErr) {
         console.error('Upload process error:', uploadErr);
         throw new Error(uploadErr instanceof Error ? uploadErr.message : 'Failed to process upload');
@@ -372,7 +370,7 @@ export default function Home() {
                   placeholder="Enter a description for the image..."
                   className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700"
                   rows={3}
-                  disabled={!userName.trim() || triesLeft === 0 || isLoading}
+                  disabled={!userName.trim() || triesLeft === 0}
                 />
               </div>
 
