@@ -177,12 +177,22 @@ export default function Home() {
             <h1 className="text-3xl font-bold mb-4">Daily Gauntlet AI Challenge</h1>
             <p className="text-gray-600 dark:text-gray-300 font-bold">Thursday, February 6th 2025</p>
         </div>
+        
         <hr className="mb-8" />
         <header className="text-center mb-8">
           <h1 className="text-2xl font-bold mb-4">Image Generation Prompting Challenge</h1>
         <p className="text-gray-600 dark:text-gray-300 font-bold mb-4">In preparation for the Stable Diffusion class on Friday.</p>
         <p className="text-gray-600 dark:text-gray-300">Enter your name and a description to generate an image using Stable Diffusion. </p>
         <p className="text-gray-600 dark:text-gray-300"> Your goal is to replicate the base image as closely as possible. </p>
+        <div className="w-full max-w-xl mx-auto my-8 aspect-square relative">
+          <Image
+            src="https://yorkqnzggaaepybsjijl.supabase.co/storage/v1/object/public/daily_challenge//1738873425124-Da.jpg"
+            alt="Base image to replicate"
+            fill
+            className="object-contain"
+            priority
+          />
+        </div>
         <p className="text-gray-600 dark:text-gray-300">You have {triesLeft} attempts remaining today.</p>
       </header>
 
