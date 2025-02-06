@@ -87,7 +87,12 @@ export async function POST(request: Request) {
       response_format: { type: "json_object" }
     });
 
-    const review = JSON.parse(response.choices[0].message.content);
+    // Add null check and throw error if content is null
+    if (!response.choices[0].message.content) {
+      throw new Error("OpenAI response content was null");
+    }
+
+    const review = JSON.parse(response.choices[0].message.content as string);
 
     // Save to Supabase
     const { data: newReview, error: dbError } = await supabase
