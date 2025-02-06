@@ -172,10 +172,13 @@ export default function Home() {
   }, []);
 
   // Add new function to handle clearing
-  const handleNewPrompt = () => {
+  const handleNewPrompt = async () => {
     setPrompt("");
     setGeneratedImage("");
     setError("");
+    if (userName.trim()) {
+      await checkUserAttempts(userName);
+    }
   };
 
   return (
