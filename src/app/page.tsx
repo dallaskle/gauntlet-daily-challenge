@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { supabase } from "../utils/supabase";
 
-function debounce<T extends (...args: any[]) => any>(
+function debounce<T extends (...args: Parameters<any>) => ReturnType<any>>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -46,7 +46,7 @@ export default function Home() {
   }>>([]);
 
   // Function to check user's attempts for today
-  const checkUserAttempts = async (name: string) => {
+  const checkUserAttempts = useCallback(async (name: string) => {
     console.log('Checking user attempts for:', name);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -71,9 +71,34 @@ export default function Home() {
       setUserHistory([]);
       setTriesLeft(3);
     }
-  };
+  }, []);
 
-  // Modify handleNameInput to use debounce
+  // Move the fetchPromptReviews function definition before the debouncedFetchData
+  const fetchPromptReviews = useCallback(async () => {
+    if (!userName.trim()) {
+      if (promptReviews.length > 0 && promptReviews[0].user_name !== userName) {
+        setPromptReviews([]);
+        return;
+      }
+    }
+
+    try {
+      const response = await fetch(`/api/review-prompt?userName=${encodeURIComponent(userName)}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch reviews');
+      }
+
+      const data = await response.json();
+      console.log('Fetched reviews:', data);
+      if (data.reviews && data.reviews.length > 0) {
+        setPromptReviews(data.reviews);
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    }
+  }, [userName, promptReviews]);
+
+  // Update the debouncedFetchData to use proper dependencies
   const debouncedFetchData = useCallback(
     debounce(async (name: string) => {
       if (name.trim()) {
@@ -85,7 +110,7 @@ export default function Home() {
         setPromptReviews([]);
       }
     }, 500),
-    []
+    [checkUserAttempts, fetchPromptReviews]
   );
 
   // Update handleNameInput to use the debounced function
@@ -126,7 +151,7 @@ export default function Home() {
           throw new Error("Failed to review prompt");
         }
 
-        const review = await reviewResponse.json();
+        await reviewResponse.json();
       }
 
       const response = await fetch("/api/generate", {
@@ -232,37 +257,11 @@ export default function Home() {
     }
   };
 
-  // Modify the fetchPromptReviews function to prevent overwriting with empty arrays
-  const fetchPromptReviews = async () => {
-    // Only fetch reviews if there's a userName
-    if (!userName.trim()) {
-      if (promptReviews.length > 0 && promptReviews[0].user_name !== userName) {
-        setPromptReviews([]);
-        return;
-      }
-    }
-
-    try {
-      const response = await fetch(`/api/review-prompt?userName=${encodeURIComponent(userName)}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch reviews');
-      }
-
-      const data = await response.json();
-      console.log('Fetched reviews:', data);
-      if (data.reviews && data.reviews.length > 0) {  // Only update if we have reviews
-        setPromptReviews(data.reviews);
-      }
-    } catch (error) {
-      console.error('Error fetching reviews:', error);
-    }
-  };
-
   // Modify the useEffect to watch for userName changes
   useEffect(() => {
     fetchAllSubmissions();
     fetchPromptReviews();
-  }, [userName]); // Add userName as a dependency
+  }, [userName, fetchPromptReviews]); // Add fetchPromptReviews to dependencies
 
   // Add new function to handle clearing
   const handleNewPrompt = async () => {
@@ -408,11 +407,11 @@ export default function Home() {
               <div className="mt-8">
                 <h2 className="text-2xl font-bold mb-4">Your Images Today</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {userHistory.map((item, index) => (
-                    <div key={index} className="border rounded-lg overflow-hidden">
+                  {userHistory.map((item) => (
+                    <div key={item.image_path} className="border rounded-lg overflow-hidden">
                       <Image
                         src={item.image_url}
-                        alt={`Generated image ${index + 1}`}
+                        alt={`Generated image for ${item.prompt}`}
                         width={256}
                         height={256}
                         className="w-full h-48 object-cover"
@@ -442,12 +441,12 @@ export default function Home() {
                 <div key={submissionUserName} className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
                   <h3 className="text-xl font-semibold mb-4">{submissionUserName}&apos;s Submissions</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {submissions.map((submission, index) => (
-                      <div key={index} className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm">
+                    {submissions.map((submission) => (
+                      <div key={submission.image_path} className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm">
                         <div className="aspect-square relative">
                           <Image
                             src={submission.image_url}
-                            alt={`${submissionUserName}&apos;s submission ${index + 1}`}
+                            alt={`${submissionUserName}&apos;s submission`}
                             fill
                             className="object-cover"
                           />
@@ -455,7 +454,7 @@ export default function Home() {
                         {/* Only show prompt if it's the current user's submission or they've used all attempts */}
                         {(submissionUserName === userName || userHistory.length >= 3) && (
                           <div className="p-4">
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{submission.prompt}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">&quot;{submission.prompt}&quot;</p>
                           </div>
                         )}
                       </div>
@@ -479,7 +478,7 @@ export default function Home() {
             ) : promptReviews.length > 0 ? (
               <>
                 <div className="text-sm text-gray-500">Found {promptReviews.length} reviews</div>
-                {promptReviews.map((review, index) => (
+                {promptReviews.map((review) => (
                   <div key={review.id} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
                     <div className="flex justify-between items-start mb-4">
                       <div>
@@ -490,7 +489,7 @@ export default function Home() {
                       </div>
                       <span className="text-2xl font-bold text-blue-600">{review.score}/100</span>
                     </div>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">"{review.prompt}"</p>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">&quot;{review.prompt}&quot;</p>
                     <div className="space-y-4">
                       <div>
                         <h4 className="font-semibold mb-2">Review</h4>
