@@ -11,6 +11,41 @@ export default function Home() {
   const [triesLeft, setTriesLeft] = useState(3);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [userHistory, setUserHistory] = useState<Array<{image_url: string, prompt: string}>>([]);
+
+  // Function to check user's attempts for today
+  const checkUserAttempts = async (name: string) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const { data, error: fetchError } = await supabase
+      .from('generated_images')
+      .select('*')
+      .eq('user_name', name)
+      .gte('created_at', today.toISOString());
+
+    if (fetchError) {
+      console.error('Error fetching user history:', fetchError);
+      return;
+    }
+
+    if (data) {
+      setUserHistory(data);
+      setTriesLeft(3 - data.length);
+    }
+  };
+
+  // Handle name input
+  const handleNameInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value;
+    setUserName(name);
+    if (name.trim()) {
+      await checkUserAttempts(name);
+    } else {
+      setUserHistory([]);
+      setTriesLeft(3);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,8 +146,8 @@ export default function Home() {
       <header className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-4">Image Generation Challenge</h1>
         <p className="text-gray-600 dark:text-gray-300">
-          Enter a description below to generate an image using Stable Diffusion.
-          You have {triesLeft} attempts remaining.
+          Enter your name and a description to generate an image using Stable Diffusion.
+          You have {triesLeft} attempts remaining today.
         </p>
       </header>
 
@@ -140,10 +175,10 @@ export default function Home() {
             <input
               type="text"
               value={userName}
-              onChange={(e) => setUserName(e.target.value)}
+              onChange={handleNameInput}
               placeholder="Enter your name..."
               className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 mb-4"
-              disabled={triesLeft === 0 || isLoading}
+              disabled={isLoading}
             />
             <textarea
               value={prompt}
@@ -151,7 +186,7 @@ export default function Home() {
               placeholder="Enter a description for the image..."
               className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700"
               rows={3}
-              disabled={triesLeft === 0 || isLoading}
+              disabled={!userName.trim() || triesLeft === 0 || isLoading}
             />
           </div>
 
@@ -174,6 +209,29 @@ export default function Home() {
             <div className="text-red-500 text-center mt-4">{error}</div>
           )}
         </form>
+
+        {/* History Section */}
+        {userHistory.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold mb-4">Your Images Today</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {userHistory.map((item, index) => (
+                <div key={index} className="border rounded-lg overflow-hidden">
+                  <Image
+                    src={item.image_url}
+                    alt={`Generated image ${index + 1}`}
+                    width={256}
+                    height={256}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="p-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{item.prompt}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
