@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { supabase } from "../utils/supabase";
 
-function debounce<T extends (...args: Parameters<any>) => ReturnType<any>>(
+function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -451,7 +451,7 @@ export default function Home() {
                             className="object-cover"
                           />
                         </div>
-                        {/* Only show prompt if it's the current user's submission or they've used all attempts */}
+                        {/* Only show prompt if it&apos;s the current user&apos;s submission or they&apos;ve used all attempts */}
                         {(submissionUserName === userName || userHistory.length >= 3) && (
                           <div className="p-4">
                             <p className="text-sm text-gray-600 dark:text-gray-400">&quot;{submission.prompt}&quot;</p>
