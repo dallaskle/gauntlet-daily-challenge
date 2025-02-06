@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { supabase } from "../utils/supabase";
 
-function debounce<T extends (name: string) => Promise<any>>(
+function debounce<T extends (name: string) => Promise<void>>(
   func: T,
   wait: number
 ): (name: string) => void {
@@ -105,7 +105,7 @@ export default function Home() {
         return Promise.all([
           checkUserAttempts(name),
           fetchPromptReviews()
-        ]);
+        ]).then(() => {});
       } else {
         setUserHistory([]);
         setTriesLeft(3);
