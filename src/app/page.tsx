@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { supabase } from "../utils/supabase";
+import { Review } from "../types/reviews";
 
 function debounce<T extends (name: string) => Promise<void>>(
   func: T,
@@ -35,15 +36,7 @@ export default function Home() {
     image_path: string
   }>>([]);
   const [activeTab, setActiveTab] = useState<'generate' | 'submissions' | 'reviews'>('generate');
-  const [promptReviews, setPromptReviews] = useState<Array<{
-    id: string,
-    created_at: string,
-    user_name: string,
-    prompt: string,
-    score: number,
-    review: string,
-    suggestions: string[]
-  }>>([]);
+  const [promptReviews, setPromptReviews] = useState<Review[]>([]);
 
   // Function to check user's attempts for today
   const checkUserAttempts = useCallback(async (name: string) => {
@@ -86,13 +79,14 @@ export default function Home() {
         throw new Error('Failed to fetch reviews');
       }
 
-      const data = await response.json();
+      // Add type for the response data
+      const data: { reviews: Review[] } = await response.json();
       console.log('Fetched reviews:', data);
       if (data.reviews && data.reviews.length > 0) {
-        // Ensure suggestions is never null
-        const processedReviews = data.reviews.map(review => ({
+        // Now TypeScript knows the type of review
+        const processedReviews = data.reviews.map((review) => ({
           ...review,
-          suggestions: review.suggestions || [] // Provide empty array if suggestions is null
+          suggestions: review.suggestions || []
         }));
         setPromptReviews(processedReviews);
       }
