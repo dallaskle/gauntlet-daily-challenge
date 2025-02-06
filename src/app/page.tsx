@@ -509,7 +509,7 @@ export default function Home() {
               </>
             ) : (
               <div className="text-center text-gray-600 dark:text-gray-400">
-                You haven't submitted any prompts yet
+                You haven&apos;t submitted any prompts yet
               </div>
             )}
           </div>
