@@ -76,10 +76,8 @@ export default function Home() {
   // Move the fetchPromptReviews function definition before the debouncedFetchData
   const fetchPromptReviews = useCallback(async () => {
     if (!userName.trim()) {
-      if (promptReviews.length > 0 && promptReviews[0].user_name !== userName) {
-        setPromptReviews([]);
-        return;
-      }
+      setPromptReviews([]);
+      return;
     }
 
     try {
@@ -91,12 +89,17 @@ export default function Home() {
       const data = await response.json();
       console.log('Fetched reviews:', data);
       if (data.reviews && data.reviews.length > 0) {
-        setPromptReviews(data.reviews);
+        // Ensure suggestions is never null
+        const processedReviews = data.reviews.map(review => ({
+          ...review,
+          suggestions: review.suggestions || [] // Provide empty array if suggestions is null
+        }));
+        setPromptReviews(processedReviews);
       }
     } catch (error) {
       console.error('Error fetching reviews:', error);
     }
-  }, [userName, promptReviews]);
+  }, [userName]);
 
   // Update the debouncedFetchData to use proper dependencies
   const debouncedFetchData = useCallback(
