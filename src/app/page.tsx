@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { supabase } from "../utils/supabase";
 
@@ -12,6 +12,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [userHistory, setUserHistory] = useState<Array<{image_url: string, prompt: string}>>([]);
+  const [allSubmissions, setAllSubmissions] = useState<Array<{user_name: string, image_url: string, prompt: string}>>([]);
 
   // Function to check user's attempts for today
   const checkUserAttempts = async (name: string) => {
@@ -128,6 +129,8 @@ export default function Home() {
           throw new Error(`Failed to save to database: ${dbError.message}`);
         }
 
+        // Fetch all submissions after successful submission
+        await fetchAllSubmissions();
         setTriesLeft((prev) => prev - 1);
       } catch (uploadErr) {
         console.error('Upload process error:', uploadErr);
@@ -140,6 +143,32 @@ export default function Home() {
       setIsLoading(false);
     }
   };
+
+  // Function to fetch all submissions for today
+  const fetchAllSubmissions = async () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const { data, error: fetchError } = await supabase
+      .from('generated_images')
+      .select('*')
+      .gte('created_at', today.toISOString())
+      .order('user_name');
+
+    if (fetchError) {
+      console.error('Error fetching all submissions:', fetchError);
+      return;
+    }
+
+    if (data) {
+      setAllSubmissions(data);
+    }
+  };
+
+  // Call fetchAllSubmissions when component mounts and after new submissions
+  useEffect(() => {
+    fetchAllSubmissions();
+  }, []);
 
   return (
     <div className="min-h-screen p-8 max-w-4xl mx-auto">
@@ -226,6 +255,48 @@ export default function Home() {
                   />
                   <div className="p-4">
                     <p className="text-sm text-gray-600 dark:text-gray-400">{item.prompt}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* All Submissions Section */}
+        {allSubmissions.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-6">Today's Submissions</h2>
+            <div className="space-y-8">
+              {Object.entries(
+                allSubmissions.reduce((acc, submission) => {
+                  if (!acc[submission.user_name]) {
+                    acc[submission.user_name] = [];
+                  }
+                  acc[submission.user_name].push(submission);
+                  return acc;
+                }, {} as Record<string, typeof allSubmissions>)
+              ).map(([submissionUserName, submissions]) => (
+                <div key={submissionUserName} className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
+                  <h3 className="text-xl font-semibold mb-4">{submissionUserName}'s Submissions</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {submissions.map((submission, index) => (
+                      <div key={index} className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm">
+                        <div className="aspect-square relative">
+                          <Image
+                            src={submission.image_url}
+                            alt={`${submissionUserName}'s submission ${index + 1}`}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        {/* Only show prompt if it's the current user's submission */}
+                        {submissionUserName === userName && (
+                          <div className="p-4">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{submission.prompt}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
