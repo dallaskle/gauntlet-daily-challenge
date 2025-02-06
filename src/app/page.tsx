@@ -174,11 +174,11 @@ export default function Home() {
   return (
     <div className="min-h-screen p-8 max-w-4xl mx-auto">
       <header className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-4">Image Generation Challenge</h1>
-        <p className="text-gray-600 dark:text-gray-300">
-          Enter your name and a description to generate an image using Stable Diffusion.
-          You have {triesLeft} attempts remaining today.
-        </p>
+        <h1 className="text-3xl font-bold mb-4">Image Generation Prompting Challenge</h1>
+        <p className="text-gray-600 dark:text-gray-300 font-bold">Thursday, February 6th 2025</p>
+        <p className="text-gray-600 dark:text-gray-300">Enter your name and a description to generate an image using Stable Diffusion. </p>
+        <p className="text-gray-600 dark:text-gray-300"> Your goal to is replicate the base image as closely as possible. </p>
+        <p className="text-gray-600 dark:text-gray-300">You have {triesLeft} attempts remaining today.</p>
       </header>
 
       {/* Tab Navigation */}
@@ -209,7 +209,7 @@ export default function Home() {
         {activeTab === 'generate' ? (
           <>
             {/* Image Display Area */}
-            <div className="w-full aspect-square max-w-2xl mx-auto border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+            <div className={`w-full mx-auto border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900 flex items-center justify-center ${generatedImage ? 'aspect-square max-w-2xl' : 'aspect-video max-w-md'}`}>
               {generatedImage ? (
                 <Image
                   src={generatedImage}
