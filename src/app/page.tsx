@@ -182,7 +182,7 @@ export default function Home() {
           <h1 className="text-2xl font-bold mb-4">Image Generation Prompting Challenge</h1>
         <p className="text-gray-600 dark:text-gray-300 font-bold mb-4">In preparation for the Stable Diffusion class on Friday.</p>
         <p className="text-gray-600 dark:text-gray-300">Enter your name and a description to generate an image using Stable Diffusion. </p>
-        <p className="text-gray-600 dark:text-gray-300"> Your goal to is replicate the base image as closely as possible. </p>
+        <p className="text-gray-600 dark:text-gray-300"> Your goal is to replicate the base image as closely as possible. </p>
         <p className="text-gray-600 dark:text-gray-300">You have {triesLeft} attempts remaining today.</p>
       </header>
 
@@ -308,14 +308,14 @@ export default function Home() {
                 }, {} as Record<string, typeof allSubmissions>)
               ).map(([submissionUserName, submissions]) => (
                 <div key={submissionUserName} className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
-                  <h3 className="text-xl font-semibold mb-4">{submissionUserName}'s Submissions</h3>
+                  <h3 className="text-xl font-semibold mb-4">{submissionUserName}&apos;s Submissions</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {submissions.map((submission, index) => (
                       <div key={index} className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm">
                         <div className="aspect-square relative">
                           <Image
                             src={submission.image_url}
-                            alt={`${submissionUserName}'s submission ${index + 1}`}
+                            alt={`${submissionUserName}&apos;s submission ${index + 1}`}
                             fill
                             className="object-cover"
                           />
