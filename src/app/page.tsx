@@ -171,6 +171,13 @@ export default function Home() {
     fetchAllSubmissions();
   }, []);
 
+  // Add new function to handle clearing
+  const handleNewPrompt = () => {
+    setPrompt("");
+    setGeneratedImage("");
+    setError("");
+  };
+
   return (
     <div className="min-h-screen p-8 max-w-4xl mx-auto">
         <div className="flex justify-between items-center">
@@ -184,7 +191,7 @@ export default function Home() {
         <p className="text-gray-600 dark:text-gray-300 font-bold mb-4">In preparation for the Stable Diffusion class on Friday.</p>
         <p className="text-gray-600 dark:text-gray-300">Enter your name and a description to generate an image using Stable Diffusion. </p>
         <p className="text-gray-600 dark:text-gray-300"> Your goal is to replicate the base image as closely as possible. </p>
-        <div className="w-full max-w-xl mx-auto my-8 aspect-square relative">
+        <div className="w-full max-w-md mx-auto my-4 aspect-square relative">
           <Image
             src="https://yorkqnzggaaepybsjijl.supabase.co/storage/v1/object/public/daily_challenge//1738873425124-Da.jpg"
             alt="Base image to replicate"
@@ -261,7 +268,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="flex justify-center">
+              <div className="flex justify-center space-x-4">
                 <button
                   type="submit"
                   disabled={!prompt || !userName || triesLeft === 0 || isLoading}
@@ -274,6 +281,15 @@ export default function Home() {
                 >
                   {isLoading ? "Generating..." : "Generate Image"}
                 </button>
+                {generatedImage && (
+                  <button
+                    type="button"
+                    onClick={handleNewPrompt}
+                    className="px-6 py-3 rounded-lg bg-gray-600 text-white font-semibold hover:bg-gray-700"
+                  >
+                    New Prompt
+                  </button>
+                )}
               </div>
 
               {error && (
