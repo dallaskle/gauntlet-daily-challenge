@@ -1,8 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { supabase } from "../utils/supabase";
+
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+}
 
 export default function Home() {
   const [prompt, setPrompt] = useState("");
@@ -25,6 +36,8 @@ export default function Home() {
   }>>([]);
   const [activeTab, setActiveTab] = useState<'generate' | 'submissions' | 'reviews'>('generate');
   const [promptReviews, setPromptReviews] = useState<Array<{
+    id: string,
+    created_at: string,
     user_name: string,
     prompt: string,
     score: number,
@@ -60,17 +73,27 @@ export default function Home() {
     }
   };
 
-  // Handle name input
-  const handleNameInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserHistory([]);
+  // Modify handleNameInput to use debounce
+  const debouncedFetchData = useCallback(
+    debounce(async (name: string) => {
+      if (name.trim()) {
+        await checkUserAttempts(name);
+        await fetchPromptReviews();
+      } else {
+        setUserHistory([]);
+        setTriesLeft(3);
+        setPromptReviews([]);
+      }
+    }, 500),
+    []
+  );
+
+  // Update handleNameInput to use the debounced function
+  const handleNameInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;
     setUserName(name);
-    if (name.trim()) {
-      checkUserAttempts(name);
-    } else {
-      setUserHistory([]);
-      setTriesLeft(3);
-    }
+    setUserHistory([]); // Clear immediately
+    debouncedFetchData(name);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,20 +113,22 @@ export default function Home() {
 
     try {
       // Get prompt review first
-      const reviewResponse = await fetch("/api/review-prompt", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt, userName }),
-      });
+      if (userName.trim()) {
+        const reviewResponse = await fetch("/api/review-prompt", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt, userName }),
+        });
 
-      if (!reviewResponse.ok) {
-        throw new Error("Failed to review prompt");
+        if (!reviewResponse.ok) {
+          throw new Error("Failed to review prompt");
+        }
+
+        const review = await reviewResponse.json();
       }
 
-      const review = await reviewResponse.json();
-      
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: {
@@ -207,28 +232,37 @@ export default function Home() {
     }
   };
 
-  // Add this function to fetch reviews
+  // Modify the fetchPromptReviews function to prevent overwriting with empty arrays
   const fetchPromptReviews = async () => {
-    const { data, error } = await supabase
-      .from('prompt_reviews')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching reviews:', error);
-      return;
+    // Only fetch reviews if there's a userName
+    if (!userName.trim()) {
+      if (promptReviews.length > 0 && promptReviews[0].user_name !== userName) {
+        setPromptReviews([]);
+        return;
+      }
     }
 
-    if (data) {
-      setPromptReviews(data);
+    try {
+      const response = await fetch(`/api/review-prompt?userName=${encodeURIComponent(userName)}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch reviews');
+      }
+
+      const data = await response.json();
+      console.log('Fetched reviews:', data);
+      if (data.reviews && data.reviews.length > 0) {  // Only update if we have reviews
+        setPromptReviews(data.reviews);
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
     }
   };
 
-  // Call fetchAllSubmissions when component mounts and after new submissions
+  // Modify the useEffect to watch for userName changes
   useEffect(() => {
     fetchAllSubmissions();
     fetchPromptReviews();
-  }, []);
+  }, [userName]); // Add userName as a dependency
 
   // Add new function to handle clearing
   const handleNewPrompt = async () => {
@@ -438,33 +472,45 @@ export default function Home() {
         ) : (
           /* Reviews Section */
           <div className="space-y-8">
-            {promptReviews.length > 0 ? (
-              promptReviews.map((review, index) => (
-                <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-xl font-semibold">{review.user_name}&apos;s Prompt</h3>
-                    <span className="text-2xl font-bold text-blue-600">{review.score}/100</span>
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">"{review.prompt}"</p>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold mb-2">Review</h4>
-                      <p className="text-gray-600 dark:text-gray-400">{review.review}</p>
+            {!userName.trim() ? (
+              <div className="text-center text-gray-600 dark:text-gray-400">
+                Please enter your name to see your prompt reviews
+              </div>
+            ) : promptReviews.length > 0 ? (
+              <>
+                <div className="text-sm text-gray-500">Found {promptReviews.length} reviews</div>
+                {promptReviews.map((review, index) => (
+                  <div key={review.id} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-xl font-semibold">Your Prompt Review</h3>
+                        <p className="text-sm text-gray-500">
+                          {new Date(review.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      <span className="text-2xl font-bold text-blue-600">{review.score}/100</span>
                     </div>
-                    <div>
-                      <h4 className="font-semibold mb-2">Suggestions</h4>
-                      <ul className="list-disc list-inside text-gray-600 dark:text-gray-400">
-                        {review.suggestions.map((suggestion, i) => (
-                          <li key={i}>{suggestion}</li>
-                        ))}
-                      </ul>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">"{review.prompt}"</p>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-semibold mb-2">Review</h4>
+                        <p className="text-gray-600 dark:text-gray-400">{review.review}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-2">Suggestions</h4>
+                        <ul className="list-disc list-inside text-gray-600 dark:text-gray-400">
+                          {review.suggestions.map((suggestion, i) => (
+                            <li key={i}>{suggestion}</li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </>
             ) : (
               <div className="text-center text-gray-600 dark:text-gray-400">
-                No prompt reviews yet
+                You haven't submitted any prompts yet
               </div>
             )}
           </div>
