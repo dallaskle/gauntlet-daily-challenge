@@ -165,6 +165,17 @@ export default function Feb7_LogicPuzzle() {
     setError("");
   };
 
+  // Add auto-resize function
+  const handleTextAreaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = e.target;
+    setPrompt(textarea.value);
+    
+    // Reset height to auto to get the correct scrollHeight
+    textarea.style.height = 'auto';
+    // Set new height based on scrollHeight
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  };
+
   return (
     <div className="min-h-screen p-8 max-w-4xl mx-auto">
       <div className="flex justify-between items-center">
@@ -305,10 +316,11 @@ export default function Feb7_LogicPuzzle() {
                 />
                 <textarea
                   value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
+                  onChange={handleTextAreaInput}
                   placeholder="Enter your prompt to help solve the puzzle..."
-                  className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700"
-                  rows={3}
+                  className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 min-h-[200px] resize-none overflow-hidden"
+                  rows={8}
+                  style={{ height: 'auto' }}
                   disabled={!userName.trim() || triesLeft === 0}
                 />
               </div>
