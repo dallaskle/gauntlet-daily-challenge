@@ -204,7 +204,7 @@ export default function Feb7_LogicPuzzle() {
         <h1 className="text-2xl font-bold mb-6">Logic Puzzle Challenge</h1>
 
         <p className="text-gray-600 dark:text-gray-300 font-medium">
-          Try to see if you can get gpt-4o to reason through this logic puzzle and solve it correctly. <br />
+          Try to see if you can get gpt-4o-mini to reason through this logic puzzle and solve it correctly. <br />
           It will be fed a basic system prompt (so you can't cheat), the puzzle, and your prompt.
         </p>
 
@@ -258,6 +258,14 @@ export default function Feb7_LogicPuzzle() {
             <li className="flex items-start">
               <span className="inline-block w-2 h-2 mt-2 mr-3 bg-blue-500 rounded-full"></span>
               <span className="text-gray-700 dark:text-gray-300">The boy that carried 20 strawberries is either the boy that used the red basket or the boy that used the white basket.</span>
+            </li>
+            <li className="flex items-start">
+              <span className="inline-block w-2 h-2 mt-2 mr-3 bg-blue-500 rounded-full"></span>
+              <span className="text-gray-700 dark:text-gray-300">Tim wore a red shirt while collecting strawberries.</span>
+            </li>
+            <li className="flex items-start">
+              <span className="inline-block w-2 h-2 mt-2 mr-3 bg-blue-500 rounded-full"></span>
+              <span className="text-gray-700 dark:text-gray-300">One of the baskets was handmade by Grandma.</span>
             </li>
             <li className="flex items-start">
               <span className="inline-block w-2 h-2 mt-2 mr-3 bg-blue-500 rounded-full"></span>
