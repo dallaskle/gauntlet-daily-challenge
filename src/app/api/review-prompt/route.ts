@@ -22,16 +22,11 @@ export async function GET(request: Request) {
       );
     }
 
-    // Get today's date at midnight
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     // Fetch reviews from Supabase
     const { data, error } = await supabase
       .from('prompt_reviews')
       .select<'*', Review>('*')
       .eq('user_name', userName)
-      .gte('created_at', today.toISOString())
       .order('created_at', { ascending: false });
 
     console.log('Found reviews:', data);

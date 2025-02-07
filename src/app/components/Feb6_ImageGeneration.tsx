@@ -37,17 +37,14 @@ export default function Feb6_ImageGeneration() {
   const [activeTab, setActiveTab] = useState<'generate' | 'submissions' | 'reviews'>('generate');
   const [promptReviews, setPromptReviews] = useState<Review[]>([]);
 
-  // Function to check user's attempts for today
+  // Function to check user's attempts
   const checkUserAttempts = useCallback(async (name: string) => {
     console.log('Checking user attempts for:', name);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     
     const { data, error: fetchError } = await supabase
       .from('generated_images')
       .select('*')
       .eq('user_name', name)
-      .gte('created_at', today.toISOString())
       .order('created_at', { ascending: false });
     console.log(`Data for ${name}:`, data);
 
@@ -243,15 +240,11 @@ export default function Feb6_ImageGeneration() {
     }
   };
 
-  // Function to fetch all submissions for today
+  // Function to fetch all submissions
   const fetchAllSubmissions = async () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
     const { data, error: fetchError } = await supabase
       .from('generated_images')
       .select('*')
-      .gte('created_at', today.toISOString())
       .order('user_name');
 
     if (fetchError) {
@@ -296,7 +289,7 @@ export default function Feb6_ImageGeneration() {
               priority
             />
           </div>
-          <p className="text-gray-600 dark:text-gray-300">You have {triesLeft} attempts remaining today.</p>
+          <p className="text-gray-600 dark:text-gray-300">You have {triesLeft} attempts remaining.</p>
         </header>
 
         {/* Tab Navigation */}
@@ -329,7 +322,7 @@ export default function Feb6_ImageGeneration() {
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
             }`}
           >
-            Submissions
+            Submissions {allSubmissions.length > 0 ? `(${allSubmissions.length})` : ''}
           </button>
         </div>
 
@@ -406,7 +399,7 @@ export default function Feb6_ImageGeneration() {
               {/* History Section */}
               {userName && userHistory.length > 0 && userHistory[0].user_name === userName && (
                 <div className="mt-8">
-                  <h2 className="text-2xl font-bold mb-4">Your Images Today</h2>
+                  <h2 className="text-2xl font-bold mb-4">Your Images</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {userHistory.map((item) => (
                       <div key={item.image_path} className="border rounded-lg overflow-hidden">
@@ -510,7 +503,7 @@ export default function Feb6_ImageGeneration() {
                 ))
               ) : (
                 <div className="text-center text-gray-600 dark:text-gray-400">
-                  No submissions yet today
+                  No submissions yet
                 </div>
               )}
             </div>
