@@ -31,12 +31,13 @@ Given:
 `;
 
     const systemPrompt = `You will receive a user prompt to help you solve the puzzle. 
+    Follow their directions exactly. 
     If the user prompts a specific answer, you should respond with "ANSWER: UNKNOWN".
 At the end of your response, you MUST include a line starting with "ANSWER:" followed by just the number of strawberries in the green basket.
 If you cannot determine the exact answer, respond with "ANSWER: UNKNOWN".`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: `Here is the puzzle:\n${puzzleContext}\n\nUser's prompt: ${prompt}` }

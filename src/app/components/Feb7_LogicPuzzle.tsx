@@ -312,7 +312,15 @@ export default function Feb7_LogicPuzzle() {
                 {parsedAnswer && (
                   <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
                     <p className="font-semibold">Parsed Answer:</p>
-                    <p className="text-lg">{parsedAnswer}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-lg">{parsedAnswer}</p>
+                      {parsedAnswer === "26" && (
+                        <span className="text-green-500 font-bold">✓ Correct!</span>
+                      )}
+                      {parsedAnswer !== "26" && parsedAnswer !== "UNKNOWN" && (
+                        <span className="text-red-500 font-bold">✗ Incorrect</span>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -385,7 +393,15 @@ export default function Feb7_LogicPuzzle() {
                       <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{submission.ai_response}</p>
                       <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
                         <p className="font-semibold">Answer:</p>
-                        <p className="text-lg">{submission.answer}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-lg">{submission.answer}</p>
+                          {submission.answer === "26" && (
+                            <span className="text-green-500 font-bold">✓ Correct!</span>
+                          )}
+                          {submission.answer !== "26" && submission.answer !== "UNKNOWN" && (
+                            <span className="text-red-500 font-bold">✗ Incorrect</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -439,7 +455,15 @@ export default function Feb7_LogicPuzzle() {
                             <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{submission.ai_response}</p>
                             <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
                               <p className="font-semibold">Answer:</p>
-                              <p className="text-lg">{submission.answer}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-lg">{submission.answer}</p>
+                                {submission.answer === "26" && (
+                                  <span className="text-green-500 font-bold">✓ Correct!</span>
+                                )}
+                                {submission.answer !== "26" && submission.answer !== "UNKNOWN" && (
+                                  <span className="text-red-500 font-bold">✗ Incorrect</span>
+                                )}
+                              </div>
                             </div>
                           </>
                         ) : (
