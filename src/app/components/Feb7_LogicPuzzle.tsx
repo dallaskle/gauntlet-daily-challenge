@@ -191,6 +191,11 @@ export default function Feb7_LogicPuzzle() {
     }));
   };
 
+  // Add function to check if user has correct answer
+  const hasCorrectAnswer = (userSubmissions: PuzzleSubmission[]) => {
+    return userSubmissions.some(submission => submission.answer === "26");
+  };
+
   return (
     <div className="min-h-screen p-8 max-w-4xl mx-auto">
       <div className="flex justify-between items-center">
@@ -454,8 +459,10 @@ export default function Feb7_LogicPuzzle() {
                         <p className="text-sm text-gray-500 mb-2">
                           {new Date(submission.created_at).toLocaleString()}
                         </p>
-                        {/* Only show details if it's the current user's submission or they've used all attempts */}
-                        {(submissionUserName === userName || userHistory.length >= 3) ? (
+                        {/* Only show details if it's the current user's submission, they've used all attempts, or they have a correct answer */}
+                        {(submissionUserName === userName || 
+                          userHistory.length >= 3 || 
+                          (userName && hasCorrectAnswer(userHistory))) ? (
                           <>
                             <p className="font-semibold mb-2">Prompt:</p>
                             <p className="text-gray-600 dark:text-gray-400 mb-4">{submission.prompt}</p>
