@@ -239,7 +239,7 @@ export default function Feb7_LogicPuzzle() {
           <div className="p-6">
             <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">
               Four boys (John, Jim, Bill, and Tim) helped their grandma collect strawberries.
-              They picked 20, 22, 24, and 26 strawberries in no particular order.
+              They picked 24, 20, 26, and 22 strawberries in no particular order.
               Each boy used a basket of a different color and collected a certain amount of strawberries.
             </p>
             <p className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
