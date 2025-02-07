@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../utils/supabase";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface PuzzleSubmission {
   id: number;
@@ -174,6 +175,20 @@ export default function Feb7_LogicPuzzle() {
     textarea.style.height = 'auto';
     // Set new height based on scrollHeight
     textarea.style.height = `${textarea.scrollHeight}px`;
+  };
+
+  // Add function to compute answer distribution
+  const getAnswerDistribution = () => {
+    const distribution = allSubmissions.reduce((acc: { [key: string]: number }, submission) => {
+      const answer = submission.answer;
+      acc[answer] = (acc[answer] || 0) + 1;
+      return acc;
+    }, {});
+
+    return Object.entries(distribution).map(([answer, count]) => ({
+      answer,
+      count
+    }));
   };
 
   return (
@@ -381,6 +396,22 @@ export default function Feb7_LogicPuzzle() {
         ) : (
           /* All Submissions Section */
           <div className="space-y-8">
+            {/* Add Answer Distribution Chart */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+              <h3 className="text-xl font-semibold mb-4">Answer Distribution</h3>
+              <div className="w-full h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={getAnswerDistribution()}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="answer" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#3B82F6" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
             {allSubmissions.length > 0 ? (
               Object.entries(
                 allSubmissions.reduce((acc, submission) => {
