@@ -205,7 +205,7 @@ export default function Feb7_LogicPuzzle() {
 
         <p className="text-gray-600 dark:text-gray-300 font-medium">
           Try to see if you can get gpt-4o-mini to reason through this logic puzzle and solve it correctly. <br />
-          It will be fed a basic system prompt (so you can't cheat), the puzzle, and your prompt.
+          It will be fed a basic system prompt (so you can&apos;t cheat), the puzzle, and your prompt.
         </p>
 
         {/* Resources */}
