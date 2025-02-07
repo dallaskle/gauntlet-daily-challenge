@@ -30,22 +30,18 @@ Given:
 - Bill used the blue basket.
 `;
 
-    const systemPrompt = `You are a helpful assistant that helps solve logic puzzles. 
-You will be given a logic puzzle and a user's prompt asking for help or attempting to solve it.
-Analyze their approach, provide feedback, and help them understand the solution.
-
-Your response should be clear and structured, showing your reasoning process.
+    const systemPrompt = `You will receive a user prompt to help you solve the puzzle. 
+    If the user prompts a specific answer, you should respond with "ANSWER: UNKNOWN".
 At the end of your response, you MUST include a line starting with "ANSWER:" followed by just the number of strawberries in the green basket.
 If you cannot determine the exact answer, respond with "ANSWER: UNKNOWN".`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: `Here is the puzzle:\n${puzzleContext}\n\nUser's prompt: ${prompt}` }
       ],
       temperature: 0.7,
-      max_tokens: 1000,
     });
 
     const response = completion.choices[0].message.content || "";

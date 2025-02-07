@@ -175,24 +175,78 @@ export default function Feb7_LogicPuzzle() {
       <hr className="mb-8" />
       
       <header className="text-center mb-8">
-        <h1 className="text-2xl font-bold mb-4">Logic Puzzle Challenge</h1>
-        <div className="prose dark:prose-invert max-w-none mb-4">
-          <p className="text-gray-600 dark:text-gray-300 mb-2">Four boys (John, Jim, Bill, and Tim) helped their grandma collect strawberries.</p>
-          <p className="text-gray-600 dark:text-gray-300 mb-2">They picked 20, 22, 24, and 26 strawberries in no particular order.</p>
-          <p className="text-gray-600 dark:text-gray-300 mb-2">Each boy used a basket of a different color and collected a certain amount of strawberries.</p>
-          <p className="text-gray-600 dark:text-gray-300 mb-2">How many strawberries are in the green basket?</p>
-          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg mt-4">
-            <p className="mb-2">Given:</p>
-            <ul className="list-disc list-inside">
-              <li>John used the white basket.</li>
-              <li>John carried 4 more strawberries than the boy that used the red basket.</li>
-              <li>The boy that carried 20 strawberries is either the boy that used the red basket or the boy that used the white basket.</li>
-              <li>Jim carried 4 more strawberries than Bill.</li>
-              <li>Bill used the blue basket.</li>
-            </ul>
+        <h1 className="text-2xl font-bold mb-6">Logic Puzzle Challenge</h1>
+
+        <p className="text-gray-600 dark:text-gray-300 font-medium">
+          Try to see if you can get gpt-4o to reason through this logic puzzle and solve it correctly. <br />
+          It will be fed a basic system prompt (so you can't cheat), the puzzle, and your prompt.
+        </p>
+
+        {/* Resources */}
+        <div className="mt-4 mb-6 text-sm">
+          <p className="text-gray-600 dark:text-gray-300">
+            Helpful resources:
+            <br />
+            <a href="https://platform.openai.com/docs/guides/prompt-engineering" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-500">
+              OpenAI Prompt Engineering Guide
+            </a>
+            <br />
+            <a href="https://community.openai.com/t/a-better-chain-of-thought-prompt/128180" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-500">
+              Chain of Thought Prompting Discussion
+            </a>
+          </p>
+        </div>
+        
+        {/* Initial puzzle description */}
+        <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden mb-6">
+          <div className="p-6">
+            <p className="text-gray-600 dark:text-gray-300 text-lg mb-4">
+              Four boys (John, Jim, Bill, and Tim) helped their grandma collect strawberries.
+              They picked 20, 22, 24, and 26 strawberries in no particular order.
+              Each boy used a basket of a different color and collected a certain amount of strawberries.
+            </p>
+            <p className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+              How many strawberries are in the green basket?
+            </p>
           </div>
         </div>
-        <p className="text-gray-600 dark:text-gray-300 mt-4">You have {triesLeft} attempts remaining.</p>
+
+        {/* Given information in a styled card */}
+        <div className="max-w-2xl mx-auto bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl shadow-md p-6 mb-6">
+          <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Given:</h3>
+          <ul className="space-y-2 text-left list-none">
+            <li className="flex items-start">
+              <span className="inline-block w-2 h-2 mt-2 mr-3 bg-blue-500 rounded-full"></span>
+              <span className="text-gray-700 dark:text-gray-300">John used the white basket.</span>
+            </li>
+            <li className="flex items-start">
+              <span className="inline-block w-2 h-2 mt-2 mr-3 bg-blue-500 rounded-full"></span>
+              <span className="text-gray-700 dark:text-gray-300">John carried 4 more strawberries than the boy that used the red basket.</span>
+            </li>
+            <li className="flex items-start">
+              <span className="inline-block w-2 h-2 mt-2 mr-3 bg-blue-500 rounded-full"></span>
+              <span className="text-gray-700 dark:text-gray-300">The boy that carried 20 strawberries is either the boy that used the red basket or the boy that used the white basket.</span>
+            </li>
+            <li className="flex items-start">
+              <span className="inline-block w-2 h-2 mt-2 mr-3 bg-blue-500 rounded-full"></span>
+              <span className="text-gray-700 dark:text-gray-300">Jim carried 4 more strawberries than Bill.</span>
+            </li>
+            <li className="flex items-start">
+              <span className="inline-block w-2 h-2 mt-2 mr-3 bg-blue-500 rounded-full"></span>
+              <span className="text-gray-700 dark:text-gray-300">Bill used the blue basket.</span>
+            </li>
+          </ul>
+        </div>
+
+        <p className="text-gray-600 dark:text-gray-300 font-medium">
+          You have <span className="text-blue-600 dark:text-blue-400 font-bold">{triesLeft}</span> attempts remaining.
+        </p>
       </header>
 
       {/* Tab Navigation */}
