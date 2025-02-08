@@ -5,7 +5,6 @@ from io import StringIO
 import contextlib
 from typing import Dict, Any
 from http import HTTPStatus
-from next.server import NextRequest, NextResponse
 
 @contextlib.contextmanager
 def capture_output():
@@ -55,19 +54,19 @@ def execute_python_code(code: str):
         except Exception as e:
             return out.getvalue(), err.getvalue(), str(e)
 
-async def POST(request: NextRequest):
+def POST(request):
     try:
         # Get the request body
-        data = await request.json()
+        data = json.loads(request.body.decode())
         
         # Get the code from the request
         code = data.get('code')
         
         if not code:
-            return NextResponse.json(
-                {"error": "No code provided"},
-                status=400
-            )
+            return {
+                'status': 400,
+                'body': json.dumps({"error": "No code provided"})
+            }
             
         # Execute the code
         output, error_output, exception = execute_python_code(code)
@@ -79,10 +78,13 @@ async def POST(request: NextRequest):
         }
         
         # Send response
-        return NextResponse.json(response_data)
+        return {
+            'status': 200,
+            'body': json.dumps(response_data)
+        }
         
     except Exception as e:
-        return NextResponse.json(
-            {"error": str(e)},
-            status=500
-        ) 
+        return {
+            'status': 500,
+            'body': json.dumps({"error": str(e)})
+        } 
