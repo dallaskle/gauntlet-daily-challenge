@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       const filteredEnv = Object.fromEntries(
         ALLOWED_ENV_VARS
           .map(key => [key, process.env[key]])
-          .filter(([_, value]) => value !== undefined)
+          .filter(([value]) => value !== undefined)
       );
 
       // Execute the Python code with filtered environment variables

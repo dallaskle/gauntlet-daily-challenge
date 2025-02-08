@@ -9,7 +9,7 @@ export default function PythonRunner() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
-  const [triesLeft, setTriesLeft] = useState(3);
+  const [triesLeft] = useState(3);
 
   const isHtmlContent = (str: string) => {
     return /<[a-z][\s\S]*>/i.test(str);
@@ -71,11 +71,11 @@ export default function PythonRunner() {
 
         <p className="text-gray-600 dark:text-gray-300 font-medium">
           The output should be either a basic print statement with a string, such as <br /><br />
-          <code>print("The History of Austin!")</code>, 
+          <code>print(&quot;The History of Austin!&quot;)</code>, 
           <br /><br />or a print statement with HTML output 
           wrapped in a string like<br /><br /> 
-          <code>print("&lt;html&gt;&lt;h1&gt;The History of Austin!&lt;/h1&gt;&lt;/html&gt;")</code>. <br /><br />
-          You have access to the "OPENAI_API_KEY" environment variable. <br /><br />
+          <code>print(&quot;&lt;html&gt;&lt;h1&gt;The History of Austin!&lt;/h1&gt;&lt;/html&gt;&quot;)</code>. <br /><br />
+          You have access to the &quot;OPENAI_API_KEY&quot; environment variable. <br /><br />
         </p>
 
         <p className="text-gray-600 dark:text-gray-300 font-medium">
