@@ -35,4 +35,35 @@ class handler(BaseHTTPRequestHandler):
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+
+    def do_POST(self):
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            request_data = json.loads(post_data.decode('utf-8'))
+            
+            # Get the code from the request
+            code = request_data.get('code', '')
+            
+            # For now, let's just execute the code and capture its output
+            # Note: In a production environment, you'd want to add security measures
+            output = {}
+            try:
+                # Create a dictionary to capture the output
+                local_dict = {}
+                exec(code, {"__builtins__": __builtins__}, local_dict)
+                output["output"] = str(local_dict.get('output', ''))
+            except Exception as e:
+                output["error"] = str(e)
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(output).encode('utf-8'))
+            
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8')) 
