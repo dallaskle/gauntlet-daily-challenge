@@ -45,7 +45,7 @@ export default function PythonRunner() {
     setOutput('');
 
     try {
-      const response = await fetch('/api/python-runner', {
+      const response = await fetch('http://18.118.93.57:8000/execute', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
