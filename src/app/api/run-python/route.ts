@@ -27,9 +27,7 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 `;
 
 // Get the Python interpreter path - use system Python on Vercel, venv locally
-const PYTHON_PATH = process.env.VERCEL
-  ? 'python'
-  : join(process.cwd(), '.venv', process.platform === 'win32' ? 'Scripts\\python.exe' : 'bin/python3');
+const PYTHON_PATH = "python"
 
 
 export async function POST(request: Request) {
