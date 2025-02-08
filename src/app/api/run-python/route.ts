@@ -9,6 +9,23 @@ export const config = {
   maxDuration: 30, // 30 second timeout
 };
 
+// Define allowed environment variables
+const ALLOWED_ENV_VARS = [
+  'OPENAI_API_KEY',
+  'PUBLIC_API_KEY',
+  // Add other allowed environment variables here
+];
+
+// Define default imports that will be prepended to every script
+const DEFAULT_IMPORTS = `import os
+import openai
+
+# Configure OpenAI with environment variable
+openai.api_key = os.getenv('OPENAI_API_KEY')
+
+# User code begins below
+`;
+
 export async function POST(request: Request) {
   try {
     const { code } = await request.json();
@@ -24,12 +41,24 @@ export async function POST(request: Request) {
     const tempFilePath = join(tmpdir(), `script-${Date.now()}.py`);
 
     try {
-      // Write the code to the temporary file
-      await writeFile(tempFilePath, code);
+      // Write the code to the temporary file with default imports
+      await writeFile(tempFilePath, DEFAULT_IMPORTS + code);
 
-      // Execute the Python code
+      // Filter environment variables to only include allowed ones
+      const filteredEnv = Object.fromEntries(
+        ALLOWED_ENV_VARS
+          .map(key => [key, process.env[key]])
+          .filter(([_, value]) => value !== undefined)
+      );
+
+      // Execute the Python code with filtered environment variables
       const output = await new Promise<string>((resolve, reject) => {
-        execFile('python3', [tempFilePath], (error, stdout, stderr) => {
+        execFile('python3', [tempFilePath], {
+          env: {
+            ...filteredEnv,
+            PATH: process.env.PATH, // Ensure Python can still access system paths
+          }
+        }, (error, stdout, stderr) => {
           // Clean up the temporary file
           unlink(tempFilePath).catch(console.error);
 
