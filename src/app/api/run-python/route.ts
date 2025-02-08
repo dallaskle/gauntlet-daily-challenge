@@ -26,6 +26,13 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 # User code begins below
 `;
 
+// Get the Python interpreter path - use system Python on Vercel, venv locally
+const PYTHON_PATH = process.env.VERCEL
+  ? 'python3'  // Use system Python on Vercel
+  : join(process.cwd(), '.venv', 
+      process.platform === 'win32' ? 'Scripts\\python.exe' : 'bin/python3'
+    );
+
 export async function POST(request: Request) {
   try {
     const { code } = await request.json();
@@ -53,7 +60,7 @@ export async function POST(request: Request) {
 
       // Execute the Python code with filtered environment variables
       const output = await new Promise<string>((resolve, reject) => {
-        execFile('python3', [tempFilePath], {
+        execFile(PYTHON_PATH, [tempFilePath], {
           env: {
             ...filteredEnv,
             PATH: process.env.PATH, // Ensure Python can still access system paths
