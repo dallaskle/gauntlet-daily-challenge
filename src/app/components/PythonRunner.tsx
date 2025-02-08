@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from 'react';
-
+import Image from 'next/image';
+import reps from '../../assets/aarnold-reps-1.png';
 export default function PythonRunner() {
   const [code, setCode] = useState('print("Hello from Python!")');
   const [output, setOutput] = useState('');
@@ -52,6 +53,16 @@ export default function PythonRunner() {
       <hr className="mb-8" />
       
       <header className="text-center mb-8">
+        <div className="mb-8">
+          <Image
+            src={reps}
+            alt="Arnold Schwarzenegger quote: There are no shortcuts, just reps, reps, reps."
+            width={600}
+            height={400}
+            className="mx-auto rounded-lg shadow-lg"
+          />
+        </div>
+
         <h1 className="text-2xl font-bold mb-6">Open AI API Python Challenge</h1>
 
         <p className="text-gray-600 dark:text-gray-300 font-medium">
