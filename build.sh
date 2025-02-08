@@ -1,12 +1,24 @@
 #!/bin/bash
 set -e
 
-# Debug: Print Python version and its path
-python3 --version
-echo "Python3 found at: $(which python3)"
+echo "Starting build process..."
 
-# Install Python dependencies into the 'python_packages' directory
-python3 -m pip install -r requirements.txt --target python_packages
+# Check Python version and environment
+echo "Python environment:"
+python3 --version
+which python3
+
+# Install Python dependencies
+echo "Installing Python dependencies..."
+python3 -m pip install --upgrade pip
+python3 -m pip install -r requirements.txt
+
+# Install Node.js dependencies
+echo "Installing Node.js dependencies..."
+npm install
 
 # Build Next.js project
-next build
+echo "Building Next.js project..."
+npm run build
+
+echo "Build completed successfully!"
