@@ -9,6 +9,11 @@ export default function PythonRunner() {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [triesLeft, setTriesLeft] = useState(3);
+
+  const isHtmlContent = (str: string) => {
+    return /<[a-z][\s\S]*>/i.test(str);
+  };
+
   const runCode = async () => {
     setLoading(true);
     setError('');
@@ -50,12 +55,15 @@ export default function PythonRunner() {
         <h1 className="text-2xl font-bold mb-6">Open AI API Python Challenge</h1>
 
         <p className="text-gray-600 dark:text-gray-300 font-medium">
-          Set up a single file python script that will use the Open AI API that provides the history of Austin, TX.
+          Set up a single file python script that will use the Open AI API that provides the history of Austin, TX.<br /><br />
         </p>
 
         <p className="text-gray-600 dark:text-gray-300 font-medium">
-          The output should be either a basic print statement with a string, such as <code>print("Hello, Austin!")</code>, 
-          or a print statement with HTML output wrapped in a string like <code>print("&lt;html&gt;&lt;h1&gt;Welcome to Austin!&lt;/h1&gt;&lt;/html&gt;")</code>.
+          The output should be either a basic print statement with a string, such as <br /><br />
+          <code>print("The History of Austin!")</code>, 
+          <br /><br />or a print statement with HTML output 
+          wrapped in a string like<br /><br /> 
+          <code>print("&lt;html&gt;&lt;h1&gt;The History of Austin!&lt;/h1&gt;&lt;/html&gt;")</code>. <br /><br />
         </p>
 
         <p className="text-gray-600 dark:text-gray-300 font-medium">
@@ -101,7 +109,14 @@ export default function PythonRunner() {
       {output && (
         <div className="mt-4">
           <h2 className="font-bold mb-2">Output:</h2>
-          <pre className="p-2 bg-gray-100 dark:bg-gray-800 rounded">{output}</pre>
+          {isHtmlContent(output) ? (
+            <div 
+              className="p-2 bg-gray-100 dark:bg-gray-800 rounded"
+              dangerouslySetInnerHTML={{ __html: output }}
+            />
+          ) : (
+            <pre className="p-2 bg-gray-100 dark:bg-gray-800 rounded whitespace-pre-wrap break-words">{output}</pre>
+          )}
         </div>
       )}
     </div>
