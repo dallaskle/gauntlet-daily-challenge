@@ -64,6 +64,14 @@ export default function PythonRunner() {
           <br /><br />or a print statement with HTML output 
           wrapped in a string like<br /><br /> 
           <code>print("&lt;html&gt;&lt;h1&gt;The History of Austin!&lt;/h1&gt;&lt;/html&gt;")</code>. <br /><br />
+          You have access to the "OPENAI_API_KEY" environment variable. <br /><br />
+        </p>
+
+        <p className="text-gray-600 dark:text-gray-300 font-medium">
+          <strong>Criteria:</strong> <br /><br />
+          - The script should be a single file python script. <br /><br />
+          - The script should use the Open AI API to get the history of Austin, TX. <br /><br />
+          - The script should print the history of Austin, TX. <br /><br />
         </p>
 
         <p className="text-gray-600 dark:text-gray-300 font-medium">
