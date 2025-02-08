@@ -1,9 +1,11 @@
-from http.server import BaseHTTPRequestHandler
 import json
 import os
 import sys
 from io import StringIO
 import contextlib
+from typing import Dict, Any
+from http import HTTPStatus
+from fastapi import Request, Response
 
 @contextlib.contextmanager
 def capture_output():
@@ -16,7 +18,7 @@ def capture_output():
     finally:
         sys.stdout, sys.stderr = old_out, old_err
 
-def execute_python_code(code):
+def execute_python_code(code: str):
     # Set up allowed environment variables
     allowed_env = {
         'OPENAI_API_KEY': os.getenv('OPENAI_API_KEY')
@@ -53,26 +55,20 @@ def execute_python_code(code):
         except Exception as e:
             return out.getvalue(), err.getvalue(), str(e)
 
-class handler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        # Get content length
-        content_length = int(self.headers['Content-Length'])
-        
-        # Read the POST data
-        post_data = self.rfile.read(content_length)
-        data = json.loads(post_data.decode('utf-8'))
+async def POST(request):
+    try:
+        # Get the request body
+        data = await request.json()
         
         # Get the code from the request
         code = data.get('code')
         
         if not code:
-            self.send_response(400)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({
-                "error": "No code provided"
-            }).encode('utf-8'))
-            return
+            return Response(
+                json.dumps({"error": "No code provided"}),
+                status=HTTPStatus.BAD_REQUEST,
+                headers={"Content-Type": "application/json"}
+            )
             
         # Execute the code
         output, error_output, exception = execute_python_code(code)
@@ -84,7 +80,15 @@ class handler(BaseHTTPRequestHandler):
         }
         
         # Send response
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps(response_data).encode('utf-8')) 
+        return Response(
+            json.dumps(response_data),
+            status=HTTPStatus.OK,
+            headers={"Content-Type": "application/json"}
+        )
+        
+    except Exception as e:
+        return Response(
+            json.dumps({"error": str(e)}),
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            headers={"Content-Type": "application/json"}
+        ) 
