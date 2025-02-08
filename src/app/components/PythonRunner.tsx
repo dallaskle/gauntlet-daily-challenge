@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import reps from '../../assets/aarnold-reps-1.png';
+
 export default function PythonRunner() {
   const [code, setCode] = useState('print("Hello from Python!")');
   const [output, setOutput] = useState('');
@@ -21,7 +22,7 @@ export default function PythonRunner() {
     setOutput('');
 
     try {
-      const response = await fetch('/api/run-python', {
+      const response = await fetch('/api/python-runner', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,7 +36,10 @@ export default function PythonRunner() {
         throw new Error(data.error);
       }
 
-      setOutput(data.output);
+      if (data.error) {
+        setError(data.error);
+      }
+      setOutput(data.output || '');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to execute code');
     } finally {
@@ -89,6 +93,7 @@ export default function PythonRunner() {
           You have <span className="text-blue-600 dark:text-blue-400 font-bold">{triesLeft}</span> attempts remaining.
         </p>
       </header>
+      
       <h1 className="text-2xl font-bold mb-4">Python Code Runner</h1>
       
       <div className="mb-4">
