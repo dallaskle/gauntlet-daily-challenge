@@ -45,7 +45,7 @@ export default function PythonRunner() {
     setOutput('');
 
     try {
-      const response = await fetch('https://python.bydallas.com/execute', {
+      const response = await fetch('https://python.bydallas.com:8000/execute', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
