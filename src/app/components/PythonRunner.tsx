@@ -37,7 +37,6 @@ export default function PythonRunner() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
-  const [triesLeft, setTriesLeft] = useState(3);
   const [activeTab, setActiveTab] = useState<'challenge' | 'submissions'>('challenge');
   const [userSubmissions, setUserSubmissions] = useState<PythonSubmission[]>([]);
   const [allSubmissions, setAllSubmissions] = useState<PythonSubmission[]>([]);
@@ -83,7 +82,7 @@ export default function PythonRunner() {
 
   // Modify runCode to create and update submission
   const runCode = async () => {
-    if (triesLeft <= 0) {
+    if (userSubmissions.length >= 3) {
       setError('No more attempts remaining');
       return;
     }
@@ -141,8 +140,6 @@ export default function PythonRunner() {
         setOutput(data.output);
       }
 
-      setTriesLeft(prev => prev - 1);
-      
       // Refresh submissions
       await fetchUserSubmissions(name);
       await fetchAllSubmissions();
@@ -206,7 +203,7 @@ export default function PythonRunner() {
         </div>
 
         <p className="text-gray-600 dark:text-gray-300 font-medium">
-          You have <span className="text-blue-600 dark:text-blue-400 font-bold">{triesLeft}</span> attempts remaining.
+          You have <span className="text-blue-600 dark:text-blue-400 font-bold">{3 - userSubmissions.length}</span> attempts remaining.
         </p>
       </header>
       
@@ -237,148 +234,146 @@ export default function PythonRunner() {
           </div>
         )}
       </div>
-      
-      {/* Move tab navigation here, before the button */}
-      <div className="flex space-x-2 mb-8 border-b border-gray-200 dark:border-gray-700">
-        <button
-          onClick={() => setActiveTab('challenge')}
-          className={`px-4 py-2 font-medium rounded-t-lg ${
-            activeTab === 'challenge'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-          }`}
-        >
-          Challenge
-        </button>
-        <button
-          onClick={() => setActiveTab('submissions')}
-          className={`px-4 py-2 font-medium rounded-t-lg ${
-            activeTab === 'submissions'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-          }`}
-        >
-          Submissions
-        </button>
-      </div>
 
-      {activeTab === 'challenge' ? (
-        <>
-          <button
-            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
-            onClick={runCode}
-            disabled={loading || !name.trim() || triesLeft <= 0}
-          >
-            {loading ? 'Running...' : triesLeft > 0 ? 'Run Code' : 'No attempts remaining'}
-          </button>
+      <button
+        className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
+        onClick={runCode}
+        disabled={loading || !name.trim() || userSubmissions.length >= 3}
+      >
+        {loading ? 'Running...' : userSubmissions.length < 3 ? 'Run Code' : 'No attempts remaining'}
+      </button>
 
-          {error && (
-            <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-              <p className="font-bold">Error:</p>
-              <pre className="mt-2 whitespace-pre-wrap">{error}</pre>
-            </div>
-          )}
-
-          {output && (
-            <div className="mt-4">
-              <h2 className="font-bold mb-2">Output:</h2>
-              <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                {isHtmlContent(output) ? (
-                  <div dangerouslySetInnerHTML={{ __html: output }} />
-                ) : (
-                  <pre className="whitespace-pre-wrap break-words">{output}</pre>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* User History Section */}
-          {userSubmissions.length > 0 && (
-            <div className="mt-8">
-              <details className="bg-white dark:bg-gray-800 rounded-lg p-4">
-                <summary className="font-bold cursor-pointer">
-                  Your Previous Submissions ({userSubmissions.length})
-                </summary>
-                <div className="mt-4 space-y-4">
-                  {userSubmissions.map((submission) => (
-                    <div key={submission.id} className="border-t pt-4">
-                      <p className="text-sm text-gray-500">
-                        {new Date(submission.created_at).toLocaleString()}
-                      </p>
-                      <pre className="mt-2 p-4 bg-gray-50 dark:bg-gray-900 rounded whitespace-pre-wrap">
-                        {submission.code_input}
-                      </pre>
-                      {submission.output && (
-                        <div className="mt-2">
-                          <h4 className="font-bold">Output:</h4>
-                          <pre className="p-4 bg-gray-50 dark:bg-gray-900 rounded whitespace-pre-wrap">
-                            {submission.output}
-                          </pre>
-                        </div>
-                      )}
-                      {submission.error && (
-                        <div className="mt-2">
-                          <h4 className="font-bold text-red-500">Error:</h4>
-                          <pre className="p-4 bg-red-50 dark:bg-red-900 rounded whitespace-pre-wrap">
-                            {submission.error}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </details>
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="space-y-8">
-          {/* All Submissions View */}
-          {Object.entries(
-            allSubmissions.reduce((acc, submission) => {
-              if (!acc[submission.user_name]) {
-                acc[submission.user_name] = [];
-              }
-              acc[submission.user_name].push(submission);
-              return acc;
-            }, {} as Record<string, PythonSubmission[]>)
-          ).map(([submissionUserName, submissions]) => (
-            <div key={submissionUserName} className="bg-white dark:bg-gray-800 rounded-lg p-6">
-              <h3 className="text-xl font-bold mb-4">{submissionUserName}&apos;s Submissions</h3>
-              <div className="space-y-4">
-                {submissions.map((submission) => (
-                  <details key={submission.id} className="border-t pt-4">
-                    <summary className="cursor-pointer">
-                      Submission from {new Date(submission.created_at).toLocaleString()}
-                    </summary>
-                    <div className="mt-4">
-                      <pre className="p-4 bg-gray-50 dark:bg-gray-900 rounded whitespace-pre-wrap">
-                        {submission.code_input}
-                      </pre>
-                      {submission.output && (
-                        <div className="mt-2">
-                          <h4 className="font-bold">Output:</h4>
-                          <pre className="p-4 bg-gray-50 dark:bg-gray-900 rounded whitespace-pre-wrap">
-                            {submission.output}
-                          </pre>
-                        </div>
-                      )}
-                      {submission.error && (
-                        <div className="mt-2">
-                          <h4 className="font-bold text-red-500">Error:</h4>
-                          <pre className="p-4 bg-red-50 dark:bg-red-900 rounded whitespace-pre-wrap">
-                            {submission.error}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-                  </details>
-                ))}
-              </div>
-            </div>
-          ))}
+      {error && (
+        <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <p className="font-bold">Error:</p>
+          <pre className="mt-2 whitespace-pre-wrap">{error}</pre>
         </div>
       )}
+
+      {output && (
+        <div className="mt-4">
+          <h2 className="font-bold mb-2">Output:</h2>
+          <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            {isHtmlContent(output) ? (
+              <div dangerouslySetInnerHTML={{ __html: output }} />
+            ) : (
+              <pre className="whitespace-pre-wrap break-words">{output}</pre>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold mb-6">Past Submissions</h2>
+        
+        <div className="flex space-x-2 mb-8 border-b border-gray-200 dark:border-gray-700">
+          <button
+            onClick={() => setActiveTab('challenge')}
+            className={`px-4 py-2 font-medium rounded-t-lg ${
+              activeTab === 'challenge'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            }`}
+          >
+            Your Submissions
+          </button>
+          <button
+            onClick={() => setActiveTab('submissions')}
+            className={`px-4 py-2 font-medium rounded-t-lg ${
+              activeTab === 'submissions'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            }`}
+          >
+            All Submissions
+          </button>
+        </div>
+
+        {activeTab === 'challenge' ? (
+          <>
+            {userSubmissions.length > 0 ? (
+              <div className="space-y-4">
+                {userSubmissions.map((submission) => (
+                  <div key={submission.id} className="bg-white dark:bg-gray-800 rounded-lg p-6">
+                    <p className="text-sm text-gray-500 mb-4">
+                      {new Date(submission.created_at).toLocaleString()}
+                    </p>
+                    <pre className="p-4 bg-gray-50 dark:bg-gray-900 rounded whitespace-pre-wrap">
+                      {submission.code_input}
+                    </pre>
+                    {submission.output && (
+                      <div className="mt-4">
+                        <h4 className="font-bold">Output:</h4>
+                        <pre className="p-4 bg-gray-50 dark:bg-gray-900 rounded whitespace-pre-wrap">
+                          {submission.output}
+                        </pre>
+                      </div>
+                    )}
+                    {submission.error && (
+                      <div className="mt-4">
+                        <h4 className="font-bold text-red-500">Error:</h4>
+                        <pre className="p-4 bg-red-50 dark:bg-red-900 rounded whitespace-pre-wrap">
+                          {submission.error}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-gray-600 dark:text-gray-400">
+                No submissions yet
+              </p>
+            )}
+          </>
+        ) : (
+          <div className="space-y-8">
+            {Object.entries(
+              allSubmissions.reduce((acc, submission) => {
+                if (!acc[submission.user_name]) {
+                  acc[submission.user_name] = [];
+                }
+                acc[submission.user_name].push(submission);
+                return acc;
+              }, {} as Record<string, PythonSubmission[]>)
+            ).map(([submissionUserName, submissions]) => (
+              <div key={submissionUserName} className="bg-white dark:bg-gray-800 rounded-lg p-6">
+                <h3 className="text-xl font-bold mb-4">{submissionUserName}&apos;s Submissions</h3>
+                <div className="space-y-4">
+                  {submissions.map((submission) => (
+                    <details key={submission.id} className="border-t pt-4">
+                      <summary className="cursor-pointer">
+                        Submission from {new Date(submission.created_at).toLocaleString()}
+                      </summary>
+                      <div className="mt-4">
+                        <pre className="p-4 bg-gray-50 dark:bg-gray-900 rounded whitespace-pre-wrap">
+                          {submission.code_input}
+                        </pre>
+                        {submission.output && (
+                          <div className="mt-2">
+                            <h4 className="font-bold">Output:</h4>
+                            <pre className="p-4 bg-gray-50 dark:bg-gray-900 rounded whitespace-pre-wrap">
+                              {submission.output}
+                            </pre>
+                          </div>
+                        )}
+                        {submission.error && (
+                          <div className="mt-2">
+                            <h4 className="font-bold text-red-500">Error:</h4>
+                            <pre className="p-4 bg-red-50 dark:bg-red-900 rounded whitespace-pre-wrap">
+                              {submission.error}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 } 
