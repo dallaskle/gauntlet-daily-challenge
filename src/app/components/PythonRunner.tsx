@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import reps from '../../assets/aarnold-reps-1.png';
 
@@ -22,6 +22,15 @@ response = client.chat.completions.create(
 # Print the response
 print(response.choices[0].message.content)`;
 
+interface PythonSubmission {
+  id: number;
+  user_name: string;
+  code_input: string;
+  output: string | null;
+  error: string | null;
+  created_at: string;
+}
+
 export default function PythonRunner() {
   const [code, setCode] = useState(EXAMPLE_CODE);
   const [output, setOutput] = useState('');
@@ -29,11 +38,50 @@ export default function PythonRunner() {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [triesLeft, setTriesLeft] = useState(3);
+  const [activeTab, setActiveTab] = useState<'challenge' | 'submissions'>('challenge');
+  const [userSubmissions, setUserSubmissions] = useState<PythonSubmission[]>([]);
+  const [allSubmissions, setAllSubmissions] = useState<PythonSubmission[]>([]);
 
   const isHtmlContent = (str: string) => {
     return /<[a-z][\s\S]*>/i.test(str);
   };
 
+  // Add function to fetch user submissions
+  const fetchUserSubmissions = useCallback(async (userName: string) => {
+    try {
+      const response = await fetch(`/api/python-submissions?userName=${encodeURIComponent(userName)}`);
+      if (!response.ok) throw new Error('Failed to fetch user submissions');
+      const data = await response.json();
+      setUserSubmissions(data.submissions);
+    } catch (error) {
+      console.error('Error fetching user submissions:', error);
+    }
+  }, []);
+
+  // Add function to fetch all submissions
+  const fetchAllSubmissions = useCallback(async () => {
+    try {
+      const response = await fetch('/api/python-submissions');
+      if (!response.ok) throw new Error('Failed to fetch submissions');
+      const data = await response.json();
+      setAllSubmissions(data.submissions);
+    } catch (error) {
+      console.error('Error fetching all submissions:', error);
+    }
+  }, []);
+
+  // Update handleNameInput to fetch user submissions
+  const handleNameInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    setName(newName);
+    if (newName.trim()) {
+      fetchUserSubmissions(newName);
+    } else {
+      setUserSubmissions([]);
+    }
+  };
+
+  // Modify runCode to create and update submission
   const runCode = async () => {
     if (triesLeft <= 0) {
       setError('No more attempts remaining');
@@ -45,11 +93,21 @@ export default function PythonRunner() {
     setOutput('');
 
     try {
+      // Create initial submission
+      const createResponse = await fetch('/api/python-submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userName: name, code }),
+      });
+
+      if (!createResponse.ok) {
+        throw new Error('Failed to create submission');
+      }
+
+      // Execute code
       const response = await fetch('https://python.bydallas.com:8000/execute', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code }),
       });
 
@@ -57,6 +115,22 @@ export default function PythonRunner() {
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to execute code');
+      }
+
+      // Update submission with results
+      const updateResponse = await fetch('/api/python-submissions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userName: name,
+          code,
+          output: data.output,
+          error: data.error
+        }),
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error('Failed to update submission');
       }
 
       if (data.error) {
@@ -68,12 +142,21 @@ export default function PythonRunner() {
       }
 
       setTriesLeft(prev => prev - 1);
+      
+      // Refresh submissions
+      await fetchUserSubmissions(name);
+      await fetchAllSubmissions();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to execute code');
     } finally {
       setLoading(false);
     }
   };
+
+  // Add useEffect to fetch all submissions on mount
+  useEffect(() => {
+    fetchAllSubmissions();
+  }, [fetchAllSubmissions]);
 
   return (
     <div className="container mx-auto p-4">
@@ -134,7 +217,7 @@ export default function PythonRunner() {
           id="name"
           className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-800"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={handleNameInput}
           placeholder="Enter your name"
         />
       </div>
@@ -155,31 +238,145 @@ export default function PythonRunner() {
         )}
       </div>
       
-      <button
-        className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
-        onClick={runCode}
-        disabled={loading || !name.trim() || triesLeft <= 0}
-      >
-        {loading ? 'Running...' : triesLeft > 0 ? 'Run Code' : 'No attempts remaining'}
-      </button>
+      {/* Move tab navigation here, before the button */}
+      <div className="flex space-x-2 mb-8 border-b border-gray-200 dark:border-gray-700">
+        <button
+          onClick={() => setActiveTab('challenge')}
+          className={`px-4 py-2 font-medium rounded-t-lg ${
+            activeTab === 'challenge'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          }`}
+        >
+          Challenge
+        </button>
+        <button
+          onClick={() => setActiveTab('submissions')}
+          className={`px-4 py-2 font-medium rounded-t-lg ${
+            activeTab === 'submissions'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          }`}
+        >
+          Submissions
+        </button>
+      </div>
 
-      {error && (
-        <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-          <p className="font-bold">Error:</p>
-          <pre className="mt-2 whitespace-pre-wrap">{error}</pre>
-        </div>
-      )}
+      {activeTab === 'challenge' ? (
+        <>
+          <button
+            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
+            onClick={runCode}
+            disabled={loading || !name.trim() || triesLeft <= 0}
+          >
+            {loading ? 'Running...' : triesLeft > 0 ? 'Run Code' : 'No attempts remaining'}
+          </button>
 
-      {output && (
-        <div className="mt-4">
-          <h2 className="font-bold mb-2">Output:</h2>
-          <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            {isHtmlContent(output) ? (
-              <div dangerouslySetInnerHTML={{ __html: output }} />
-            ) : (
-              <pre className="whitespace-pre-wrap break-words">{output}</pre>
-            )}
-          </div>
+          {error && (
+            <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+              <p className="font-bold">Error:</p>
+              <pre className="mt-2 whitespace-pre-wrap">{error}</pre>
+            </div>
+          )}
+
+          {output && (
+            <div className="mt-4">
+              <h2 className="font-bold mb-2">Output:</h2>
+              <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                {isHtmlContent(output) ? (
+                  <div dangerouslySetInnerHTML={{ __html: output }} />
+                ) : (
+                  <pre className="whitespace-pre-wrap break-words">{output}</pre>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* User History Section */}
+          {userSubmissions.length > 0 && (
+            <div className="mt-8">
+              <details className="bg-white dark:bg-gray-800 rounded-lg p-4">
+                <summary className="font-bold cursor-pointer">
+                  Your Previous Submissions ({userSubmissions.length})
+                </summary>
+                <div className="mt-4 space-y-4">
+                  {userSubmissions.map((submission) => (
+                    <div key={submission.id} className="border-t pt-4">
+                      <p className="text-sm text-gray-500">
+                        {new Date(submission.created_at).toLocaleString()}
+                      </p>
+                      <pre className="mt-2 p-4 bg-gray-50 dark:bg-gray-900 rounded whitespace-pre-wrap">
+                        {submission.code_input}
+                      </pre>
+                      {submission.output && (
+                        <div className="mt-2">
+                          <h4 className="font-bold">Output:</h4>
+                          <pre className="p-4 bg-gray-50 dark:bg-gray-900 rounded whitespace-pre-wrap">
+                            {submission.output}
+                          </pre>
+                        </div>
+                      )}
+                      {submission.error && (
+                        <div className="mt-2">
+                          <h4 className="font-bold text-red-500">Error:</h4>
+                          <pre className="p-4 bg-red-50 dark:bg-red-900 rounded whitespace-pre-wrap">
+                            {submission.error}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </details>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="space-y-8">
+          {/* All Submissions View */}
+          {Object.entries(
+            allSubmissions.reduce((acc, submission) => {
+              if (!acc[submission.user_name]) {
+                acc[submission.user_name] = [];
+              }
+              acc[submission.user_name].push(submission);
+              return acc;
+            }, {} as Record<string, PythonSubmission[]>)
+          ).map(([submissionUserName, submissions]) => (
+            <div key={submissionUserName} className="bg-white dark:bg-gray-800 rounded-lg p-6">
+              <h3 className="text-xl font-bold mb-4">{submissionUserName}&apos;s Submissions</h3>
+              <div className="space-y-4">
+                {submissions.map((submission) => (
+                  <details key={submission.id} className="border-t pt-4">
+                    <summary className="cursor-pointer">
+                      Submission from {new Date(submission.created_at).toLocaleString()}
+                    </summary>
+                    <div className="mt-4">
+                      <pre className="p-4 bg-gray-50 dark:bg-gray-900 rounded whitespace-pre-wrap">
+                        {submission.code_input}
+                      </pre>
+                      {submission.output && (
+                        <div className="mt-2">
+                          <h4 className="font-bold">Output:</h4>
+                          <pre className="p-4 bg-gray-50 dark:bg-gray-900 rounded whitespace-pre-wrap">
+                            {submission.output}
+                          </pre>
+                        </div>
+                      )}
+                      {submission.error && (
+                        <div className="mt-2">
+                          <h4 className="font-bold text-red-500">Error:</h4>
+                          <pre className="p-4 bg-red-50 dark:bg-red-900 rounded whitespace-pre-wrap">
+                            {submission.error}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
