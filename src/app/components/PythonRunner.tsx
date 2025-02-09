@@ -311,9 +311,13 @@ export default function PythonRunner() {
                     {submission.output && (
                       <div className="mt-4">
                         <h4 className="font-bold">Output:</h4>
-                        <pre className="p-4 bg-gray-50 dark:bg-gray-900 rounded whitespace-pre-wrap">
-                          {submission.output}
-                        </pre>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded">
+                          {isHtmlContent(submission.output) ? (
+                            <div dangerouslySetInnerHTML={{ __html: submission.output }} />
+                          ) : (
+                            <pre className="whitespace-pre-wrap">{submission.output}</pre>
+                          )}
+                        </div>
                       </div>
                     )}
                     {submission.error && (
@@ -359,9 +363,13 @@ export default function PythonRunner() {
                         {submission.output && (
                           <div className="mt-2">
                             <h4 className="font-bold">Output:</h4>
-                            <pre className="p-4 bg-gray-50 dark:bg-gray-900 rounded whitespace-pre-wrap">
-                              {submission.output}
-                            </pre>
+                            <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded">
+                              {isHtmlContent(submission.output) ? (
+                                <div dangerouslySetInnerHTML={{ __html: submission.output }} />
+                              ) : (
+                                <pre className="whitespace-pre-wrap">{submission.output}</pre>
+                              )}
+                            </div>
                           </div>
                         )}
                         {submission.error && (
