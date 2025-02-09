@@ -103,6 +103,14 @@ export default function PythonRunner() {
           <p className="text-gray-600 dark:text-gray-300 font-medium mb-4">
             Create a Python script that uses the OpenAI API to get and display the history of Austin, TX.
           </p>
+          <p className="text-gray-600 dark:text-gray-300 font-medium">
+          The output should be either a basic print statement with a string, such as <br /><br />
+          <code>print("The History of Austin!")</code>, 
+          <br /><br />or a print statement with HTML output 
+          wrapped in a string like<br /><br /> 
+          <code>print("&lt;html&gt;&lt;h1&gt;The History of Austin!&lt;/h1&gt;&lt;/html&gt;")</code>. <br /><br />
+          You have access to the "OPENAI_API_KEY" environment variable. <br /><br />
+        </p>
 
           <div className="text-left bg-white dark:bg-gray-900 p-4 rounded-lg">
             <p className="font-bold mb-2">Requirements:</p>
@@ -132,6 +140,7 @@ export default function PythonRunner() {
       </div>
       
       <div className="relative">
+        <p className="text-gray-600 dark:text-gray-300 font-medium">Just write/paste your full python script here. Imports and everything | requirements.txt= openai==1.55.3</p>
         <textarea
           className="w-full h-[400px] p-4 border rounded mb-4 font-mono bg-gray-50 dark:bg-gray-800 disabled:bg-gray-200 dark:disabled:bg-gray-700"
           value={code}
