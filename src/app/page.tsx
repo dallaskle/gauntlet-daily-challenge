@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Feb7_LogicPuzzle from "./components/Feb7_LogicPuzzle";
 import Feb6_ImageGeneration from "./components/Feb6_ImageGeneration";
 import PythonRunner from "./components/PythonRunner";
-import Link from 'next/link';
 
 export default function Home() {
   const [showFeb6, setShowFeb6] = useState(false);
