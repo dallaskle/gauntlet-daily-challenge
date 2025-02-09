@@ -69,10 +69,12 @@ export default function PythonRunner() {
     }
   }, []);
 
-  // Update handleNameInput to fetch user submissions
+  // Update handleNameInput to a simpler version
   const handleNameInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
     setName(newName);
+    setError(''); // Clear any existing errors
+    
     if (newName.trim()) {
       fetchUserSubmissions(newName);
     } else {
@@ -80,10 +82,15 @@ export default function PythonRunner() {
     }
   };
 
-  // Modify runCode to create and update submission
+  // Modify runCode with simpler check
   const runCode = async () => {
+    if (!name.trim()) {
+      setError('Please enter your name first');
+      return;
+    }
+
     if (userSubmissions.length >= 3) {
-      setError('No more attempts remaining');
+      setError('Maximum submission limit (3) reached for this username');
       return;
     }
 

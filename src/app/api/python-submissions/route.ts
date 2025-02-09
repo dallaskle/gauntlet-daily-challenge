@@ -12,6 +12,21 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check existing submissions count
+    const { data: existingSubmissions, error: countError } = await supabase
+      .from('python_submissions')
+      .select('id')
+      .eq('user_name', userName);
+
+    if (countError) throw countError;
+
+    if (existingSubmissions && existingSubmissions.length >= 3) {
+      return NextResponse.json(
+        { error: "Maximum submission limit (3) reached for this username" },
+        { status: 400 }
+      );
+    }
+
     const { data, error } = await supabase
       .from('python_submissions')
       .insert({
